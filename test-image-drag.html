@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片拖拽排序测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .upload-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .upload-section input {
+            margin: 10px 0;
+        }
+        
+        .images-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            min-height: 120px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        
+        .image-preview-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: move;
+            user-select: none;
+        }
+        
+        .image-preview-item:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+        
+        .image-preview-item.dragging {
+            opacity: 0.5;
+            transform: scale(1.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+        
+        .image-preview-item.drag-over {
+            border-color: #667eea;
+            border-style: dashed;
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+        
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+        
+        .image-preview-item .order-number {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .image-preview-item .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(229, 62, 62, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .image-preview-item:hover .delete-btn {
+            display: flex;
+        }
+        
+        .image-preview-item:hover .order-number {
+            display: none;
+        }
+        
+        .drag-hint {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        
+        .buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.8;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ 图片拖拽排序测试</h1>
+        
+        <div class="upload-section">
+            <h3>上传测试图片</h3>
+            <input type="file" id="image-input" accept="image/*" multiple>
+            <div class="drag-hint">💡 提示：可以选择多张图片进行测试</div>
+        </div>
+        
+        <div class="drag-hint">🎯 拖拽图片可以调整顺序，左上角显示当前序号</div>
+        
+        <div class="images-container" id="images-container">
+            <div class="empty-state">请上传图片开始测试</div>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn btn-primary" onclick="saveOrder()">保存顺序</button>
+            <button class="btn btn-secondary" onclick="clearAll()">清空所有</button>
+            <button class="btn btn-secondary" onclick="addTestImages()">添加测试图片</button>
+        </div>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        let imageOrder = [];
+        let draggedElement = null;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('image-input');
+            input.addEventListener('change', handleFileSelect);
+        });
+
+        // 处理文件选择
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            const container = document.getElementById('images-container');
+            
+            // 清空空状态提示
+            const emptyState = container.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            Array.from(files).forEach(file => {
+                if (file.type.match('image.*')) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const order = imageOrder.length;
+                        const imageContainer = createImagePreviewItem(event.target.result, order, true);
+                        container.appendChild(imageContainer);
+                        imageOrder.push({
+                            url: event.target.result,
+                            order: order,
+                            file: file,
+                            isNew: true
+                        });
+                        updateOrderNumbers();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // 创建图片预览项
+        function createImagePreviewItem(imageSrc, order, isNew = false) {
+            const container = document.createElement('div');
+            container.className = 'image-preview-item';
+            container.dataset.order = order;
+            container.dataset.isNew = isNew;
+            container.draggable = true;
+            
+            const img = document.createElement('img');
+            img.src = imageSrc;
+            img.alt = '测试图片';
+            
+            // 添加序号显示
+            const orderNumber = document.createElement('div');
+            orderNumber.className = 'order-number';
+            orderNumber.textContent = order + 1;
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.onclick = function(e) {
+                e.stopPropagation();
+                deleteImage(container, isNew);
+            };
+            
+            container.appendChild(orderNumber);
+            container.appendChild(img);
+            container.appendChild(deleteBtn);
+            
+            // 添加拖拽事件监听器
+            addDragEventListeners(container);
+            
+            return container;
+        }
+
+        // 添加拖拽事件监听器
+        function addDragEventListeners(element) {
+            element.addEventListener('dragstart', handleDragStart);
+            element.addEventListener('dragend', handleDragEnd);
+            element.addEventListener('dragover', handleDragOver);
+            element.addEventListener('drop', handleDrop);
+            element.addEventListener('dragenter', handleDragEnter);
+            element.addEventListener('dragleave', handleDragLeave);
+        }
+
+        function handleDragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            
+            // 移除所有拖拽悬停样式
+            const allItems = document.querySelectorAll('.image-preview-item');
+            allItems.forEach(item => {
+                item.classList.remove('drag-over');
+            });
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDragEnter(e) {
+            if (this !== draggedElement) {
+                this.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            if (draggedElement !== this) {
+                // 交换DOM元素位置
+                const container = this.parentNode;
+                const allItems = Array.from(container.children);
+                const draggedIndex = allItems.indexOf(draggedElement);
+                const targetIndex = allItems.indexOf(this);
+                
+                if (draggedIndex < targetIndex) {
+                    container.insertBefore(draggedElement, this.nextSibling);
+                } else {
+                    container.insertBefore(draggedElement, this);
+                }
+                
+                // 更新图片顺序
+                updateImageOrder();
+                updateOrderNumbers();
+                
+                showStatus('图片顺序已更新', 'success');
+            }
+            
+            this.classList.remove('drag-over');
+            return false;
+        }
+
+        // 更新图片顺序
+        function updateImageOrder() {
+            const allItems = document.querySelectorAll('.image-preview-item');
+            allItems.forEach((item, index) => {
+                item.dataset.order = index;
+            });
+            
+            // 重新排序imageOrder数组
+            const newOrder = [];
+            allItems.forEach((item, index) => {
+                const order = parseInt(item.dataset.order);
+                const originalIndex = imageOrder.findIndex(img => img.order === order);
+                if (originalIndex !== -1) {
+                    const imageItem = imageOrder[originalIndex];
+                    imageItem.order = index;
+                    newOrder.push(imageItem);
+                }
+            });
+            
+            imageOrder = newOrder.sort((a, b) => a.order - b.order);
+        }
+
+        // 更新序号显示
+        function updateOrderNumbers() {
+            const allItems = document.querySelectorAll('.image-preview-item');
+            allItems.forEach((item, index) => {
+                const orderNumber = item.querySelector('.order-number');
+                if (orderNumber) {
+                    orderNumber.textContent = index + 1;
+                }
+            });
+        }
+
+        // 删除图片
+        function deleteImage(container, isNew) {
+            const order = parseInt(container.dataset.order);
+            
+            container.remove();
+            imageOrder = imageOrder.filter(img => img.order !== order);
+            
+            updateImageOrder();
+            updateOrderNumbers();
+            
+            showStatus('图片已删除', 'success');
+            
+            // 如果没有图片了，显示空状态
+            const containerEl = document.getElementById('images-container');
+            if (imageOrder.length === 0) {
+                containerEl.innerHTML = '<div class="empty-state">请上传图片开始测试</div>';
+            }
+        }
+
+        // 保存顺序
+        function saveOrder() {
+            if (imageOrder.length === 0) {
+                showStatus('没有图片可以保存', 'error');
+                return;
+            }
+            
+            const orderData = imageOrder.map((img, index) => ({
+                url: img.url,
+                order: index + 1
+            }));
+            
+            console.log('保存的图片顺序:', orderData);
+            showStatus(`已保存 ${orderData.length} 张图片的顺序`, 'success');
+        }
+
+        // 清空所有
+        function clearAll() {
+            imageOrder = [];
+            const container = document.getElementById('images-container');
+            container.innerHTML = '<div class="empty-state">请上传图片开始测试</div>';
+            showStatus('已清空所有图片', 'success');
+        }
+
+        // 添加测试图片
+        function addTestImages() {
+            const testImages = [
+                'https://picsum.photos/seed/test1/100/100.jpg',
+                'https://picsum.photos/seed/test2/100/100.jpg',
+                'https://picsum.photos/seed/test3/100/100.jpg',
+                'https://picsum.photos/seed/test4/100/100.jpg',
+                'https://picsum.photos/seed/test5/100/100.jpg'
+            ];
+            
+            const container = document.getElementById('images-container');
+            
+            // 清空空状态提示
+            const emptyState = container.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            testImages.forEach((url, index) => {
+                setTimeout(() => {
+                    const order = imageOrder.length;
+                    const imageContainer = createImagePreviewItem(url, order, false);
+                    container.appendChild(imageContainer);
+                    imageOrder.push({
+                        url: url,
+                        order: order,
+                        isNew: false
+                    });
+                    updateOrderNumbers();
+                }, index * 100); // 延迟添加，创建动画效果
+            });
+            
+            showStatus('已添加5张测试图片', 'success');
+        }
+
+        // 显示状态消息
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status');
+            statusEl.className = `status ${type}`;
+            statusEl.textContent = message;
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

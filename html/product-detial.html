@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" ">
+<head>
+    <meta charset="UTF-8">
+    <title>个人网站</title>
+    <link type="text/css" rel="stylesheet" href="../css/common.css"/>
+    <link type="text/css" rel="stylesheet" href="../css/product-detial.css"/>
+    <script type="text/javascript" src="../script.js"></script>
+    <!-- 引入图标样式文件 -->
+    <link type="text/css" rel="stylesheet" href="../iconfont/iconfont.css">
+</head>
+<body class="background">    
+        <div data-include="partials/header.html"></div>
+         <!-- 内容区域 --> 
+        <div class="container"><!-- 中间容器 --> 
+            <div class="product-detial-container">
+                <div class="title">考证通APP</div>
+                <div class="star-tag-time">
+                    <div class="star-container">
+                    <span class="iconfont icon-xingxing"></span>
+                    <span class="iconfont icon-xingxing"></span>
+                    <span class="iconfont icon-xingxing"></span>
+                    <span class="iconfont icon-xingxing"></span>
+                    <span class="iconfont icon-xingxing"></span>
+                </div>
+                    <div class="product-tag">
+                        <h1 class="tag">墨刀</h1>
+                        <h2 class="tag">Master Go</h2>
+                    </div>
+                    <div class="time-container">
+                    <span class="iconfont icon-shijian"></span>
+                    <p>2023年12月20日</p>
+                </div>
+                </div>
+                <div class="product-description-container">
+                    <p class="product-description" id="product-description">暂无描述</p>
+                </div>
+                <div class="product-img-container">
+                    <!-- 图片将通过JavaScript动态加载 -->
+                </div>
+            </div>
+           
+ 
+        </div>
+         <!--底部-->
+        <div data-include="partials/footer.html"></div>          
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 解析URL参数获取产品ID
+            function getProductIdFromUrl() {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get('id');
+            }
+
+            // 获取产品详情
+            async function fetchProductDetail(productId) {
+                console.log('获取产品详情，ID:', productId);
+                
+                try {
+                    const response = await fetch(`http://8.136.34.190:3000/api/products/${productId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'include'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`获取产品详情失败: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('产品详情数据:', data);
+                    
+                    if (data.success) {
+                        return data.data;
+                    } else {
+                        throw new Error(data.message || '获取产品详情失败');
+                    }
+                } catch (error) {
+                    console.error('获取产品详情错误:', error);
+                    alert('无法加载产品详情，请稍后再试');
+                    return null;
+                }
+            }
+
+            // 渲染产品详情
+            function renderProductDetail(product) {
+                if (!product) return;
+                
+                // 更新标题
+                document.title = `${product.title} - 作品详情`;
+                
+                // 更新页面内容
+                const titleElement = document.querySelector('.title');
+                const starContainer = document.querySelector('.star-container');
+                const tagContainer = document.querySelector('.product-tag');
+                const timeContainer = document.querySelector('.time-container p');
+                const imgContainer = document.querySelector('.product-img-container');
+                
+                if (titleElement) {
+                    titleElement.textContent = product.title || '未命名产品';
+                }
+                
+                if (starContainer) {
+                    // 生成星星HTML
+                    let starsHtml = '';
+                    for (let j = 0; j < 5; j++) {
+                        if (j < (product.stars || 0)) {
+                            starsHtml += '<span style="color: #FFD700;">★</span>';
+                        } else {
+                            starsHtml += '<span style="color: #E5E7EB;">★</span>';
+                        }
+                    }
+                    starContainer.innerHTML = starsHtml;
+                }
+                
+                if (tagContainer) {
+                    // 处理标签
+                    const processedTags = typeof product.tags === 'string' 
+                        ? product.tags.split(',').map(tag => tag.trim()).filter(tag => tag) 
+                        : (Array.isArray(product.tags) ? product.tags : []);
+                    
+                    let tagsHtml = '';
+                    processedTags.forEach(tag => {
+                        tagsHtml += `<h1 class="tag">${tag}</h1>`;
+                    });
+                    tagContainer.innerHTML = tagsHtml;
+                }
+                
+                if (timeContainer) {
+                    timeContainer.textContent = product.date || '';
+                }
+                
+                // 更新作品描述
+                const descriptionElement = document.getElementById('product-description');
+                if (descriptionElement) {
+                    descriptionElement.textContent = product.description || '暂无描述';
+                }
+                
+                if (imgContainer) {
+                    // 清空现有图片
+                    imgContainer.innerHTML = '';
+                    
+                    // 检查产品数据中是否有图片信息
+                    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+                        // 如果有图片数组，按保存的顺序遍历并显示所有图片
+                        console.log('显示图片，数量:', product.images.length);
+                        console.log('图片顺序:', product.images);
+                        
+                        product.images.forEach((image, index) => {
+                            const img = document.createElement('img');
+                            // 处理不同格式的图片数据
+                            let imageUrl = image;
+                            if (typeof image === 'object' && image.url) {
+                                imageUrl = image.url;
+                            } else if (typeof image !== 'string') {
+                                console.warn('无效的图片数据:', image);
+                                return; // 跳过无效数据
+                            }
+                            
+                            img.src = imageUrl;
+                            img.alt = `${product.title} - 图片${index + 1}`;
+                            img.style.order = index; // 确保CSS顺序正确
+                            imgContainer.appendChild(img);
+                            console.log(`添加图片 ${index + 1}:`, imageUrl);
+                        });
+                    } else if (product.cover) {
+                        // 如果只有封面图，显示封面图
+                        const img = document.createElement('img');
+                        img.src = product.cover;
+                        img.alt = `${product.title} - 封面`;
+                        imgContainer.appendChild(img);
+                        console.log('显示封面图:', product.cover);
+                    } else {
+                        // 如果没有图片，显示默认图片或提示信息
+                        const defaultImg = document.createElement('img');
+                        defaultImg.src = '../img/work_img.png';
+                        defaultImg.alt = '暂无图片';
+                        imgContainer.appendChild(defaultImg);
+                        console.log('显示默认图片');
+                    }
+                    
+                    console.log('产品图片处理完成，总数:', imgContainer.children.length);
+                }
+            }
+
+            // 初始化
+            const productId = getProductIdFromUrl();
+            if (productId) {
+                const product = await fetchProductDetail(productId);
+                renderProductDetail(product);
+            }
+        });
+    </script>
+</body>
+</html>

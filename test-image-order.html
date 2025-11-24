@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片顺序测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-container { max-width: 800px; margin: 0 auto; }
+        .product-list { margin: 20px 0; }
+        .product-item { border: 1px solid #ddd; margin: 10px 0; padding: 15px; }
+        .images-container { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+        .image-item { border: 1px solid #ccc; padding: 5px; text-align: center; }
+        .image-item img { width: 100px; height: 100px; object-fit: cover; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>图片顺序功能测试</h1>
+        
+        <div class="test-section">
+            <h2>1. 获取作品列表</h2>
+            <button onclick="loadProducts()">加载作品</button>
+            <div id="product-list" class="product-list"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>2. 测试图片顺序更新</h2>
+            <div id="test-result" class="test-result"></div>
+            <button onclick="testImageOrderUpdate()" id="test-btn" style="display:none;">测试图片顺序更新</button>
+        </div>
+    </div>
+
+    <script>
+        let products = [];
+        let selectedProductId = null;
+
+        async function loadProducts() {
+            try {
+                const response = await fetch('http://localhost:3000/api/products');
+                const data = await response.json();
+                
+                if (data.success) {
+                    products = data.products;
+                    displayProducts(products);
+                    document.getElementById('test-result').innerHTML = '<div class="success">作品加载成功！请选择一个作品进行测试。</div>';
+                } else {
+                    document.getElementById('test-result').innerHTML = `<div class="error">作品加载失败: ${data.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('test-result').innerHTML = `<div class="error">请求失败: ${error.message}</div>`;
+            }
+        }
+
+        function displayProducts(productList) {
+            const container = document.getElementById('product-list');
+            container.innerHTML = '';
+            
+            productList.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product-item';
+                
+                let imagesHtml = '';
+                if (product.images && product.images.length > 0) {
+                    const sortedImages = product.images.sort((a, b) => a.order - b.order);
+                    imagesHtml = '<div class="images-container">';
+                    sortedImages.forEach((image, index) => {
+                        imagesHtml += `
+                            <div class="image-item">
+                                <img src="${image.path}" alt="${image.filename}">
+                                <div>顺序: ${image.order}</div>
+                            </div>
+                        `;
+                    });
+                    imagesHtml += '</div>';
+                }
+                
+                productDiv.innerHTML = `
+                    <h3>${product.title}</h3>
+                    <p>ID: ${product.id}</p>
+                    <p>图片数量: ${product.images ? product.images.length : 0}</p>
+                    ${imagesHtml}
+                    <button onclick="selectProduct(${product.id})">选择此作品测试</button>
+                `;
+                
+                container.appendChild(productDiv);
+            });
+        }
+
+        function selectProduct(productId) {
+            selectedProductId = productId;
+            const product = products.find(p => p.id === productId);
+            
+            if (product && product.images && product.images.length > 1) {
+                document.getElementById('test-btn').style = 'display:inline-block';
+                document.getElementById('test-result').innerHTML = `
+                    <div class="success">
+                        已选择作品: ${product.title} (ID: ${product.id})<br>
+                        当前图片数量: ${product.images.length}<br>
+                        点击下方按钮测试图片顺序更新功能。
+                    </div>
+                `;
+            } else {
+                document.getElementById('test-btn').style = 'display:none';
+                document.getElementById('test-result').innerHTML = `
+                    <div class="error">
+                        此作品图片数量不足，无法测试顺序更新功能。
+                    </div>
+                `;
+            }
+        }
+
+        async function testImageOrderUpdate() {
+            if (!selectedProductId) {
+                document.getElementById('test-result').innerHTML = '<div class="error">请先选择一个作品</div>';
+                return;
+            }
+
+            const product = products.find(p => p.id === selectedProductId);
+            if (!product || !product.images || product.images.length < 2) {
+                document.getElementById('test-result').innerHTML = '<div class="error">所选作品图片数量不足</div>';
+                return;
+            }
+
+            try {
+                // 构建测试数据：交换前两张图片的顺序
+                const imageOrderData = [
+                    { index: 0, order: 2 },  // 第一张图片移到第二位
+                    { index: 1, order: 1 }   // 第二张图片移到第一位
+                ];
+
+                // 添加其他图片保持原有顺序
+                for (let i = 2; i < product.images.length; i++) {
+                    imageOrderData.push({ index: i, order: i + 1 });
+                }
+
+                console.log('发送的图片顺序数据:', imageOrderData);
+
+                const response = await fetch(`http://localhost:3000/api/products/${selectedProductId}/images/order`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer admin-token-placeholder'
+                    },
+                    body: JSON.stringify({ imageOrder: imageOrderData })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    document.getElementById('test-result').innerHTML = `
+                        <div class="success">
+                            图片顺序更新成功！<br>
+                            更新结果: ${JSON.stringify(data.product.images, null, 2)}<br>
+                            请重新加载作品列表查看变化。
+                        </div>
+                    `;
+                    
+                    // 重新加载作品列表
+                    setTimeout(loadProducts, 1000);
+                } else {
+                    document.getElementById('test-result').innerHTML = `
+                        <div class="error">
+                            图片顺序更新失败: ${data.message}<br>
+                            状态码: ${response.status}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('test-result').innerHTML = `
+                    <div class="error">请求失败: ${error.message}</div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

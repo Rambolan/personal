@@ -1,0 +1,161 @@
+/*背景*/            
+    .background {
+        height: 364px;
+        background-image: url('../img/product-bg.png');
+        background-repeat: no-repeat;
+        background-size: cover;
+        margin: 0;
+        background-color: #F9FAFB;
+    }
+
+
+/*中间容器*/  
+    .container{
+        width: 100%;
+        box-sizing: border-box;
+        padding-top: 50px;
+        padding-bottom: 50px;
+        display: flex;
+        flex-direction: column;/* 垂直排列 */
+        align-items: center;/* 交叉轴居中（垂直居中） */
+    }
+
+    /*标题*/  
+        .title{
+            font-size: 30px;
+            font-weight: 600;
+            line-height: 36px;
+            margin: 0;
+            color: #000000;
+            margin-bottom: 30px;
+        }
+
+    /* 筛选栏 */
+        .Filter-Bar{
+            width: 70%;
+            display: flex;
+            margin-bottom: 30px;
+            justify-content: space-between;/* 分居两边 */
+
+        }   
+
+        /* 筛选栏左侧 */
+            .left{
+                display: flex;
+                align-items: center;/* 上下居中 */
+                gap: 20px;
+            }
+        
+            .time{
+                display: flex;
+                align-items: center;/* 上下居中 */
+                padding: 10px 20px;
+                border-radius: 6px;
+                background-color: #ffffff;
+            }
+
+            .left p{
+                font-size: 16px;
+                line-height: 24px;
+                margin: 0;
+                color: #000000;
+            }
+
+            .left img{
+                width: 16px;
+                height: 16px;
+                margin-right: 10px;
+            }
+
+        /* 筛选栏右侧 */
+            .right{
+                display: flex;
+                align-items: center;/* 上下居中 */
+                gap: 20px;
+            }
+
+            .Adjust-the-layout{
+                 padding: 11px 16px;
+                background-color: #ffffff;
+                border-radius: 6px;
+            }
+
+    /* 文章容器 */
+        .article-container{
+            width: 70%;
+            display: flex;
+            flex-direction: column;/* 垂直排列 */
+            gap: 30px;
+        }
+
+        /* 文章列表容器 */
+            .article-list-container{
+                display: flex;
+                justify-content: space-between;/* 分居两边 */
+                padding: 20px;
+                gap: 30px;
+                background-color: #ffffff;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+
+            /* 文章列表项悬浮效果 */
+            .article-list-container:hover{
+                box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.2);
+            }
+            
+            /* 文章列表左侧容器 */
+            .left-container{
+                display: flex;
+                flex-direction: column;/* 垂直排列 */
+                justify-content: space-between;/* 分居两边 */
+                gap: 20px;
+                padding: 8px 0px;
+            }
+                /* 文章列表左侧顶部容器 */
+                .left-top-container{
+                    display: flex;
+                    flex-direction: column;/* 垂直排列 */
+                    gap: 20px;
+                }
+
+                    /* 文章列表左侧标题 */
+                    .article-title{
+                        font-size: 26px;
+                        font-weight: 600;
+                        line-height: 34px;
+                        margin: 0;
+                        color: #000000;
+                        text-align: left;
+                    }
+
+                    /* 文章列表左侧描述 */
+                    .article-description{
+                        font-size: 18px;
+                        line-height: 26px;
+                        margin: 0;
+                        color: #808a99;
+                        text-align: left;
+                    }
+                
+                /* 文章列表左侧底部容器 */
+                .left-bottom-container{
+                    display: flex;
+                    align-items: center;/* 上下居中 */
+                    gap: 4px;
+                }
+                    /* 文章列表左侧发布时间 */
+                    .left-bottom-container p{
+                        font-size: 16px;
+                        line-height: 16px;
+                        margin: 0;
+                        color: #808a99;
+                        text-align: left;
+                    }
+
+                    .right-container{
+                        width: 356px;
+                        height: 200px;
+                    }
+            
+            

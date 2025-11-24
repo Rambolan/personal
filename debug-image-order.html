@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片顺序调试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>图片顺序调试工具</h1>
+    
+    <div class="section">
+        <h3>1. 获取作品信息</h3>
+        <input type="number" id="productId" placeholder="作品ID" value="40">
+        <button onclick="getProduct()">获取作品</button>
+        <div id="productInfo" class="log"></div>
+    </div>
+    
+    <div class="section">
+        <h3>2. 模拟编辑保存（不添加新图片）</h3>
+        <button onclick="simulateEditSave()">模拟编辑保存</button>
+        <div id="editResult" class="log"></div>
+    </div>
+    
+    <div class="section">
+        <h3>3. 检查图片数量变化</h3>
+        <button onclick="checkImageCount()">检查图片数量</button>
+        <div id="countResult" class="log"></div>
+    </div>
+
+    <script>
+        let currentProduct = null;
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJhZG1pbiIsImVtYWlsIjoiYWRtaW5AZXhhbXBsZS5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NjM0NTQ5MzUsImV4cCI6MTc2MzU0MTMzNX0.MjbRH-kRlfPnwLNS0zwUQou94IbuAc3EYJGs-lJnIro';
+        
+        async function getProduct() {
+            const productId = document.getElementById('productId').value;
+            const logDiv = document.getElementById('productInfo');
+            
+            try {
+                const response = await fetch(`http://localhost:3000/api/products/${productId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                currentProduct = data.data;
+                
+                logDiv.textContent = `作品信息：
+标题：${currentProduct.title}
+图片数量：${currentProduct.images ? currentProduct.images.length : 0}
+图片列表：
+${JSON.stringify(currentProduct.images, null, 2)}`;
+            } catch (error) {
+                logDiv.textContent = `错误：${error.message}`;
+            }
+        }
+        
+        async function simulateEditSave() {
+            if (!currentProduct) {
+                alert('请先获取作品信息');
+                return;
+            }
+            
+            const logDiv = document.getElementById('editResult');
+            const productId = currentProduct.id;
+            
+            try {
+                // 模拟编辑模式下的图片顺序更新
+                // 假设没有新图片，只有现有图片的重新排序
+                const allImages = currentProduct.images.map((img, index) => ({
+                    url: img.url || img,
+                    order: index + 1
+                }));
+                
+                logDiv.textContent = `发送的图片数组：
+${JSON.stringify(allImages, null, 2)}
+图片数量：${allImages.length}`;
+                
+                const response = await fetch(`http://localhost:3000/api/products/${productId}/images/reorder`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ images: allImages })
+                });
+                
+                const result = await response.json();
+                
+                logDiv.textContent += `
+
+响应结果：
+${JSON.stringify(result, null, 2)}`;
+                
+                if (result.success) {
+                    logDiv.textContent += `
+
+更新后的图片数量：${result.data.images ? result.data.images.length : 0}`;
+                }
+                
+            } catch (error) {
+                logDiv.textContent = `错误：${error.message}`;
+            }
+        }
+        
+        async function checkImageCount() {
+            const productId = document.getElementById('productId').value;
+            const logDiv = document.getElementById('countResult');
+            
+            try {
+                const response = await fetch(`http://localhost:3000/api/products/${productId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                const product = data.data;
+                
+                logDiv.textContent = `当前作品图片数量：${product.images ? product.images.length : 0}
+
+图片详情：
+${JSON.stringify(product.images, null, 2)}`;
+            } catch (error) {
+                logDiv.textContent = `错误：${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

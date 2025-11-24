@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作品集</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/product.css">
+    <script src="../script.js"></script>
+    <!-- 引入图标样式文件 -->
+    <link rel="stylesheet" href="../iconfont/iconfont.css">
+</head>
+<body class="background">    
+        <div data-include="partials/header.html"></div>
+         <!-- 内容区域 --> 
+        <div class="container"><!-- 中间容器 --> 
+            <div class="title">作品列表</div>
+            <div class="Filter-Bar"><!-- 筛选栏 -->
+                <div class="left">
+                    <div class="time" style="display: flex; align-items: center; gap: 8px;">
+                        <span id="timeSortIcon" class="iconfont icon-a-paixu-zhengpaixu1x" style="font-size: 16px; color: #3B82F6;"></span>
+                        <p>按时间排序</p>
+                    </div>
+                    <div class="like" style="display: flex; align-items: center; gap: 8px;">
+                        <span id="likeSortIcon" class="iconfont icon-a-paixu-zhengpaixu1x" style="font-size: 16px; color: #3B82F6;"></span>
+                        <p>按喜欢度排序</p>
+                    </div>
+                </div>
+                <div class="right">
+                    <div class="Adjust-the-layout grid-view-btn active">
+                        <span class="iconfont icon-dasuolvetuliebiao"></span>
+                    </div>
+                    <div class="Adjust-the-layout list-view-btn">
+                        <span class="iconfont icon-liebiao"></span>
+                    </div>
+
+                </div>
+            </div>
+            <div class="product-list" id="product-list"><!-- 作品列表 -->
+                    <!-- 产品将通过JavaScript动态生成 -->
+            </div>  
+            <ul class="page-container" id="pagination"><!-- 分页器 -->
+                <!-- 分页按钮将通过JavaScript动态生成 -->
+            </ul>
+            
+        </div>
+         <!--底部-->
+        <div data-include="partials/footer.html"></div>          
+
+    <script>
+        // 分页功能实现
+        document.addEventListener('DOMContentLoaded', async () => {
+            const productList = document.getElementById('product-list');
+            const pagination = document.getElementById('pagination');
+            
+            // 分页配置
+            const pageSize = 6; // 每页显示6个产品
+            let currentPage = 1;
+            let totalPages = 1;
+            let productsData = []; // 存储从API获取的产品数据
+            
+            // 从API获取产品数据
+    async function fetchProducts() {
+        console.log('========================================');
+        console.log('开始获取产品数据...');
+        console.log('当前时间:', new Date().toLocaleString());
+        
+        try {
+            // 优化请求配置，简化CORS配置以避免潜在问题
+            const options = {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                },
+                credentials: 'include', // 包含cookies
+                // 注意：在某些环境下，显式设置mode可能会导致问题，让浏览器自动处理
+                // mode: 'cors',
+                cache: 'no-cache'
+            };
+            
+            console.log('准备发送fetch请求到:', 'http://8.136.34.190:3000/api/products');
+            console.log('fetch选项:', JSON.stringify(options, null, 2));
+            
+            let response;
+            try {
+                response = await fetch('http://8.136.34.190:3000/api/products', options);
+                
+                console.log('收到API响应，状态码:', response.status);
+                console.log('API响应类型:', response.type);
+                console.log('API响应头:', Array.from(response.headers.entries()));
+            } catch (fetchError) {
+                console.error('Fetch请求失败:', fetchError);
+                console.log('错误堆栈:', fetchError.stack);
+                throw fetchError;
+            }
+            
+            if (!response || !response.ok) {
+                throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('API完整响应数据:', data);
+            
+            if (data.success) {
+                // 提取产品数组
+                const productsArray = data.data || [];
+                console.log('提取的产品数组长度:', productsArray.length);
+                console.log('提取的产品数组:', productsArray);
+                
+                // 转换数据格式，确保所有必要字段存在
+                productsData = productsArray.map(product => ({
+                    id: product.id,
+                    // 为相对路径的图片添加正确的路径前缀
+                    cover: product.cover && !product.cover.startsWith('http') && !product.cover.startsWith('../') 
+                        ? '../img/covers/' + product.cover 
+                        : product.cover,
+                    alt: product.title || '产品图片',
+                    title: product.title || '未命名产品',
+                    stars: product.stars || 0,
+                    description: product.description || '',
+                    // 处理标签：如果是字符串则按逗号分隔并去除空白
+                    tags: Array.isArray(product.tags) ? product.tags : 
+                          (typeof product.tags === 'string' ? 
+                           product.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : []),
+                    date: product.date
+                }));
+                console.log('转换后的产品数据:', productsData);
+                // 检查第一个产品的标签类型和内容
+                if (productsData.length > 0) {
+                    console.log('第一个产品的标签类型:', typeof productsData[0].tags);
+                    console.log('第一个产品的标签内容:', productsData[0].tags);
+                }
+                console.log('转换后的产品数据长度:', productsData.length);
+                
+                // 更新总页数
+                totalPages = Math.ceil((data.pagination?.total || productsData.length) / pageSize);
+                console.log('计算的总页数:', totalPages);
+                
+                // 初始化时应用时间排序
+                applyTimeSort();
+            } else {
+                console.error('获取产品数据失败:', data.message || '未知错误');
+                // 使用空数据初始化
+                productsData = [];
+                totalPages = 1;
+                renderProducts(currentPage);
+                renderPagination(currentPage);
+            }
+        } catch (error) {
+            console.error('API请求错误:', error);
+            console.log('错误类型:', error.name);
+            console.log('错误详情:', error.message);
+            
+            // 添加网络错误重试逻辑
+            if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+                console.log('检测到网络错误，尝试使用XMLHttpRequest作为备用方案...');
+                try {
+                    const products = await new Promise((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('GET', 'http://8.136.34.190:3000/api/products', true);
+                        xhr.setRequestHeader('Content-Type', 'application/json');
+                        xhr.setRequestHeader('Accept', 'application/json');
+                        xhr.withCredentials = true;
+                        
+                        xhr.onload = function() {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                try {
+                                    const result = JSON.parse(xhr.responseText);
+                                    resolve(result);
+                                } catch (parseError) {
+                                    reject(new Error('解析响应失败'));
+                                }
+                            } else {
+                                reject(new Error(`XHR请求失败: ${xhr.status}`));
+                            }
+                        };
+                        
+                        xhr.onerror = function() {
+                            reject(new Error('XHR网络错误'));
+                        };
+                        
+                        xhr.send();
+                    });
+                    
+                    // 处理备用方案返回的数据
+                    if (products.success) {
+                        const productsArray = products.data || [];
+                        productsData = productsArray.map(product => ({
+                        id: product.id,
+                        // 为相对路径的图片添加正确的路径前缀
+                        cover: product.cover && !product.cover.startsWith('http') && !product.cover.startsWith('../') 
+                            ? '../img/covers/' + product.cover 
+                            : product.cover,
+                        alt: product.title || '产品图片',
+                        title: product.title || '未命名产品',
+                        stars: product.stars || 0,
+                        description: product.description || '',
+                        // 处理标签：如果是字符串则按逗号分隔并去除空白
+                        tags: Array.isArray(product.tags) ? product.tags : 
+                              (typeof product.tags === 'string' ? 
+                               product.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : []),
+                        date: product.date
+                    }));
+                        console.log('XMLHttpRequest处理后的产品数据:', productsData);
+                        // 检查第一个产品的标签类型和内容
+                        if (productsData.length > 0) {
+                            console.log('XMLHttpRequest第一个产品的标签类型:', typeof productsData[0].tags);
+                            console.log('XMLHttpRequest第一个产品的标签内容:', productsData[0].tags);
+                        }
+                        totalPages = Math.ceil((products.pagination?.total || productsData.length) / pageSize);
+                        applyTimeSort();
+                    } else {
+                        throw new Error(products.message || '备用方案数据获取失败');
+                    }
+                } catch (fallbackError) {
+                    console.error('备用方案也失败了，将使用静态数据:', fallbackError);
+                    const staticProducts = [
+                        {
+                            id: 1,
+                            cover: '../img/covers/cover1.jpg',
+                            alt: '考证通 APP',
+                            title: '考证通 APP',
+                            stars: 5,
+                            description: '以用户为中心的证书备考应用，包含知识点学习、真题练习与模拟考试。',
+                            tags: '墨刀, Master Go',
+                            date: '2023年6月'
+                        },
+                        {
+                            id: 2,
+                            cover: '../img/covers/cover2.jpg',
+                            alt: '测试作品',
+                            title: '测试作品',
+                            stars: 4,
+                            description: '这是一个测试作品，用于演示作品集页面。',
+                            tags: 'Sketch, Figma',
+                            date: '2023年5月'
+                        },
+                        {
+                            id: 3,
+                            cover: '../img/covers/cover3.jpg',
+                            alt: 'SaaS后台设计系统',
+                            title: 'SaaS 后台设计系统（规范与组件库）',
+                            stars: 5,
+                            description: '沉淀表格、表单、筛选等高频模式，统一样式与交互，缩短交付周期。',
+                            tags: 'Figma, Design Tokens, Sketch',
+                            date: '2023年4月'
+                        },
+                        {
+                            id: 4,
+                            cover: '../img/covers/cover4.jpg',
+                            alt: 'B2B 官网改版',
+                            title: 'B2B 官网信息架构与改版',
+                            stars: 4,
+                            description: '通过内容分层与案例背书强化转化路径，日均线索提升 37%。',
+                            tags: 'Principle, Figma',
+                            date: '2023年3月'
+                        }
+                    ];
+                    productsData = staticProducts;
+                    console.log('使用静态数据，第一个产品的标签:', productsData[0].tags);
+                    totalPages = Math.ceil(productsData.length / pageSize);
+                    applyTimeSort();
+                    renderProducts(currentPage);
+                    renderPagination(currentPage);
+                }
+                return;
+            }
+            
+            // 使用静态数据作为备用
+            console.log('使用静态数据作为最后的备用方案...');
+            productsData = [
+                {
+                    id: 1,
+                    cover: '../img/covers/cover1.jpg',
+                    alt: '考证通 APP',
+                    title: '考证通 APP',
+                    stars: 5,
+                    description: '以用户为中心的证书备考应用，包含知识点学习、真题练习与模拟考试。',
+                    tags: ['Figma', '墨刀', 'After Effects'],
+                    date: '2023年6月'
+                },
+                {
+                    id: 2,
+                    cover: '../img/covers/cover2.jpg',
+                    alt: '测试作品',
+                    title: '测试作品',
+                    stars: 4,
+                    description: '这是一个测试作品，用于演示作品集页面。',
+                    tags: ['Sketch', 'Figma'],
+                    date: '2023年5月'
+                },
+                {
+                    id: 3,
+                    cover: '../img/covers/cover3.jpg',
+                    alt: 'SaaS后台设计系统',
+                    title: 'SaaS 后台设计系统（规范与组件库）',
+                    stars: 5,
+                    description: '沉淀表格、表单、筛选等高频模式，统一样式与交互，缩短交付周期。',
+                    tags: ['Figma', 'Design Tokens'],
+                    date: '2023年4月'
+                },
+                {
+                    id: 4,
+                    cover: '../img/covers/cover4.jpg',
+                    alt: 'B2B 官网改版',
+                    title: 'B2B 官网信息架构与改版',
+                    stars: 4,
+                    description: '通过内容分层与案例背书强化转化路径，日均线索提升 37%。',
+                    tags: ['Principle', 'Figma'],
+                    date: '2023年3月'
+                }
+            ];
+            totalPages = Math.ceil(productsData.length / pageSize);
+            applyTimeSort();
+            renderProducts(currentPage);
+            renderPagination(currentPage);
+        }
+        
+        console.log('fetchProducts函数执行完成');
+        console.log('========================================');
+    }
+            
+            // 格式化日期函数
+            function formatDate(dateString) {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return dateString; // 如果日期无效，返回原始字符串
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}年${month}月${day}日`;
+            }
+            
+            // 渲染产品列表
+            function renderProducts(page) {
+                productList.innerHTML = '';
+                
+                // 计算当前页的产品数据
+                const startIndex = (page - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+                const currentProducts = productsData.slice(startIndex, endIndex);
+                
+                // 按行组织产品（每行3个）
+                for (let i = 0; i < currentProducts.length; i += 3) {
+                    const row = document.createElement('div');
+                    row.className = 'rows';
+                    
+                    // 获取当前行的产品（最多3个）
+                    const rowProducts = currentProducts.slice(i, i + 3);
+                    
+                    rowProducts.forEach(product => {
+                        // 创建产品元素
+                        const productEl = document.createElement('div');
+                        productEl.className = 'product';
+                        
+                        // 生成星星HTML
+                        let starsHtml = '';
+                        for (let j = 0; j < 5; j++) {
+                            if (j < (product.stars || 0)) {
+                                starsHtml += '<span style="color: #FFD700;">★</span>';
+                            } else {
+                                starsHtml += '<span style="color: #E5E7EB;">★</span>';
+                            }
+                        }
+                        
+                        // 处理产品标签
+                        // 处理产品标签 - 确保无论输入格式如何，都能正确处理标签
+                        const tags = typeof product.tags === 'string' 
+                            ? product.tags.split(',').map(tag => tag.trim()).filter(tag => tag) 
+                            : (Array.isArray(product.tags) ? product.tags : []);
+                        
+                        // 生成标签HTML
+                        let tagsHtml = '';
+                        
+                        // 处理当前产品的标签，确保逗号分隔的标签字符串被转换为数组
+                        const processedTags = typeof product.tags === 'string' 
+                            ? product.tags.split(',').map(tag => tag.trim()).filter(tag => tag) 
+                            : (Array.isArray(product.tags) ? product.tags : []);
+                        
+                        // 为每个标签生成HTML
+                        processedTags.forEach(tag => {
+                            tagsHtml += `<p class="tag">${tag}</p>`;
+                        });
+                        
+                        // 设置产品内容
+                        productEl.innerHTML = viewType === 'grid' ? `
+                            <img src="${product.cover}" alt="${product.alt}">
+                            <div class="bottom">
+                                <div class="bottom-top-container">
+                                    <p class="product-title">${product.title}</p>
+                                    <div class="star-container">
+                                        ${starsHtml}
+                                    </div>
+                                </div>
+                                <p class="product-description">${product.description || '暂无描述'}</p>
+                                <div class="bottom-bottom-container">
+                                    <div class="product-tag">
+                                        ${tagsHtml}
+                                    </div>
+                                    <p>${formatDate(product.date)}</p>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="list-product-content">
+                                <img src="${product.cover}" alt="${product.alt}">
+                                <div class="list-product-info">
+                                    <div class="list-product-header">
+                                        <p class="product-title">${product.title}</p>
+                                        <div class="star-container">
+                                            ${starsHtml}
+                                        </div>
+                                    </div>
+                                    <p class="product-description">${product.description || '暂无描述'}</p>
+                                    <div class="list-product-footer">
+                                        <div class="product-tag">
+                                            ${tagsHtml}
+                                        </div>
+                                        <p>${formatDate(product.date)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // 添加点击事件，跳转到产品详情页
+                        productEl.addEventListener('click', () => {
+                            // 这里可以添加跳转到产品详情页的逻辑
+                            console.log('Product clicked:', product.title);
+                        });
+                        
+                        row.appendChild(productEl);
+                    });
+                    
+                    productList.appendChild(row);
+                }
+            }
+            
+            // 渲染分页器
+            function renderPagination(page) {
+                pagination.innerHTML = '';
+                
+                // 上一页按钮
+                const prevBtn = document.createElement('li');
+                prevBtn.textContent = '上一页';
+                prevBtn.className = page === 1 ? 'disabled' : '';
+                prevBtn.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        updatePagination();
+                    }
+                });
+                pagination.appendChild(prevBtn);
+                
+                // 页码按钮
+                let startPage = Math.max(1, page - 2);
+                let endPage = Math.min(totalPages, startPage + 4);
+                
+                // 调整起始页码，确保显示5个页码
+                if (endPage - startPage < 4) {
+                    startPage = Math.max(1, endPage - 4);
+                }
+                
+                // 第一页
+                if (startPage > 1) {
+                    addPageButton(1);
+                    if (startPage > 2) {
+                        addEllipsis();
+                    }
+                }
+                
+                // 中间页码
+                for (let i = startPage; i <= endPage; i++) {
+                    addPageButton(i);
+                }
+                
+                // 最后一页
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        addEllipsis();
+                    }
+                    addPageButton(totalPages);
+                }
+                
+                // 下一页按钮
+                const nextBtn = document.createElement('li');
+                nextBtn.textContent = '下一页';
+                nextBtn.className = page === totalPages ? 'disabled' : '';
+                nextBtn.addEventListener('click', () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        updatePagination();
+                    }
+                });
+                pagination.appendChild(nextBtn);
+                
+                // 添加页码按钮的辅助函数
+                function addPageButton(pageNum) {
+                    const btn = document.createElement('li');
+                    btn.textContent = pageNum;
+                    btn.className = pageNum === page ? 'active' : '';
+                    btn.addEventListener('click', () => {
+                        currentPage = pageNum;
+                        updatePagination();
+                    });
+                    pagination.appendChild(btn);
+                }
+                
+                // 添加省略号的辅助函数
+                function addEllipsis() {
+                    const ellipsis = document.createElement('li');
+                    ellipsis.textContent = '...';
+                    ellipsis.className = 'ellipsis';
+                    ellipsis.style.cursor = 'default';
+                    pagination.appendChild(ellipsis);
+                }
+            }
+            
+            // 更新分页（重新渲染产品和分页器）
+            function updatePagination() {
+                renderProducts(currentPage);
+                renderPagination(currentPage);
+            }
+            
+                    // 添加排序功能
+            let sortByTime = true; // 默认按时间排序
+            let timeSortDescending = true; // 默认降序（最新的在前）
+            let likeSortDescending = true; // 默认降序（最受欢迎的在前）
+            
+            // 缓存DOM元素
+            const timeSort = document.querySelector('.time');
+            const likeSort = document.querySelector('.like');
+            const timeSortIcon = document.getElementById('timeSortIcon');
+            const likeSortIcon = document.getElementById('likeSortIcon');
+            
+            // 确保在DOM加载完成后调用fetchProducts
+            console.log('DOMContentLoaded事件触发，准备调用fetchProducts函数');
+            
+
+            
+            // 初始调用
+            fetchProducts().then(() => {
+                console.log('fetchProducts函数执行完成');
+                // 初始更新分页
+                updatePagination();
+            }).catch((error) => {
+                console.error('fetchProducts执行出错:', error);
+                // 即使出错也要更新分页以显示空状态
+                updatePagination();
+            });
+            
+            // 更新排序图标方向
+            function updateSortIconDirection(iconElement, isDescending) {
+                // 移除所有可能的图标类
+                iconElement.className = 'iconfont';
+                
+                // 根据排序方向添加对应的图标类
+                iconElement.classList.add(isDescending ? 'icon-a-paixu-fupaixu1x' : 'icon-a-paixu-zhengpaixu1x');
+            }
+            
+            // 添加图标样式
+            const style = document.createElement('style');
+            style.textContent = `
+                /* 排序图标样式 */
+                .icon-a-paixu-zhengpaixu1x,
+                .icon-a-paixu-fupaixu1x {
+                    display: inline-block;
+                    font-size: 14px;
+                    color: #3B82F6;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // 应用时间排序
+            function applyTimeSort() {
+                // 按时间排序（假设日期格式是'YYYY年MM月DD日'）
+                try {
+                    productsData.sort((a, b) => {
+                        const dateA = new Date(a.date.replace(/年|月/g, '-').replace(/日/g, ''));
+                        const dateB = new Date(b.date.replace(/年|月/g, '-').replace(/日/g, ''));
+                        return timeSortDescending ? (dateB - dateA) : (dateA - dateB);
+                    });
+                } catch (error) {
+                    console.error('排序错误:', error);
+                }
+                
+                // 更新图标方向
+                updateSortIconDirection(timeSortIcon, timeSortDescending);
+                
+                currentPage = 1; // 重置到第一页
+                updatePagination();
+            }
+            
+            // 应用喜欢度排序
+            function applyLikeSort() {
+                // 按喜欢度排序
+                try {
+                    productsData.sort((a, b) => {
+                        return likeSortDescending ? (b.stars - a.stars) : (a.stars - b.stars);
+                    });
+                } catch (error) {
+                    console.error('排序错误:', error);
+                }
+                
+                // 更新图标方向
+                updateSortIconDirection(likeSortIcon, likeSortDescending);
+                
+                currentPage = 1; // 重置到第一页
+                updatePagination();
+            }
+            
+            // 更新排序按钮状态
+            function updateSortButtonStates() {
+                // 激活当前排序方式的按钮
+                timeSort.style.fontWeight = sortByTime ? 'bold' : 'normal';
+                likeSort.style.fontWeight = !sortByTime ? 'bold' : 'normal';
+                
+                // 更新排序图标
+                updateSortIconDirection(timeSortIcon, timeSortDescending);
+                updateSortIconDirection(likeSortIcon, likeSortDescending);
+            }
+            
+            timeSort.addEventListener('click', () => {
+                if (sortByTime) {
+                    // 如果已经是时间排序，则切换排序方向
+                    timeSortDescending = !timeSortDescending;
+                } else {
+                    // 切换到时间排序
+                    sortByTime = true;
+                }
+                applyTimeSort();
+                updateSortButtonStates();
+            });
+            
+            likeSort.addEventListener('click', () => {
+                if (!sortByTime) {
+                    // 如果已经是喜欢度排序，则切换排序方向
+                    likeSortDescending = !likeSortDescending;
+                } else {
+                    // 切换到喜欢度排序
+                    sortByTime = false;
+                }
+                applyLikeSort();
+                updateSortButtonStates();
+            });
+            
+            // 视图切换功能初始化
+            console.log('初始化视图切换功能');
+            const gridViewBtn = document.querySelector('.grid-view-btn');
+            const listViewBtn = document.querySelector('.list-view-btn');
+            let currentView = 'grid'; // 默认宫格视图
+            
+            if (gridViewBtn) {
+                gridViewBtn.addEventListener('click', switchToGridView);
+                console.log('网格视图按钮事件监听添加成功');
+            } else {
+                console.warn('未找到网格视图按钮');
+            }
+            
+            if (listViewBtn) {
+                listViewBtn.addEventListener('click', switchToListView);
+                console.log('列表视图按钮事件监听添加成功');
+            } else {
+                console.warn('未找到列表视图按钮');
+            }
+            
+            // 更新视图图标状态
+            function updateViewIcons() {
+                // 移除所有视图按钮的激活状态
+                gridViewBtn.classList.remove('active');
+                listViewBtn.classList.remove('active');
+                
+                // 根据当前视图激活对应的按钮
+                if (currentView === 'grid') {
+                    gridViewBtn.classList.add('active');
+                } else {
+                    listViewBtn.classList.add('active');
+                }
+            }
+            
+            // 切换到宫格视图
+            function switchToGridView() {
+                currentView = 'grid';
+                updateViewIcons();
+                renderProducts(currentPage); // 重新渲染产品
+            }
+            
+            // 切换到列表视图
+            function switchToListView() {
+                currentView = 'list';
+                updateViewIcons();
+                renderProducts(currentPage); // 重新渲染产品
+            }
+            
+            // 修改renderProducts函数以支持不同视图
+            const originalRenderProducts = renderProducts;
+            renderProducts = function(page) {
+                productList.innerHTML = '';
+                
+                // 计算当前页的产品数据
+                const startIndex = (page - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+                const currentProducts = productsData.slice(startIndex, endIndex);
+                
+                if (currentView === 'grid') {
+                    // 宫格视图 - 按行组织产品（每行3个）
+                    for (let i = 0; i < currentProducts.length; i += 3) {
+                        const row = document.createElement('div');
+                        row.className = 'rows';
+                        
+                        // 获取当前行的产品（最多3个）
+                        const rowProducts = currentProducts.slice(i, i + 3);
+                        
+                        rowProducts.forEach(product => {
+                            createProductElement(product, 'grid').then(productEl => {
+                                row.appendChild(productEl);
+                            });
+                        });
+                        
+                        productList.appendChild(row);
+                    }
+                } else {
+                    // 列表视图 - 每个产品一行
+                    currentProducts.forEach(product => {
+                        createProductElement(product, 'list').then(productEl => {
+                            productList.appendChild(productEl);
+                        });
+                    });
+                }
+            };
+            
+            // 创建产品元素的辅助函数
+            function createProductElement(product, viewType) {
+                return new Promise(resolve => {
+                    // 创建产品元素
+                    const productEl = document.createElement('div');
+                    
+                    if (viewType === 'grid') {
+                        productEl.className = 'product';
+                    } else {
+                        productEl.className = 'product list-product';
+                    }
+                    
+                    // 生成星星HTML
+                    let starsHtml = '';
+                        for (let j = 0; j < 5; j++) {
+                            if (j < (product.stars || 0)) {
+                                starsHtml += '<span style="color: #FFD700;">★</span>';
+                            } else {
+                                starsHtml += '<span style="color: #E5E7EB;">★</span>';
+                            }
+                    }
+                    
+                    // 生成标签HTML
+                    let tagsHtml = '';
+                    
+                    // 处理当前产品的标签，确保逗号分隔的标签字符串被转换为数组
+                    const processedTags = typeof product.tags === 'string' 
+                        ? product.tags.split(',').map(tag => tag.trim()).filter(tag => tag) 
+                        : (Array.isArray(product.tags) ? product.tags : []);
+                    
+                    // 为每个标签生成HTML
+                    processedTags.forEach(tag => {
+                        tagsHtml += `<p class="tag">${tag}</p>`;
+                    });
+                    
+                    // 设置产品内容
+                    productEl.innerHTML = `
+                        <img src="${product.cover}" alt="${product.alt}">
+                        <div class="bottom">
+                            <div class="bottom-top-container">
+                                <p class="product-title">${product.title}</p>
+                                <div class="star-container">
+                                    ${starsHtml}
+                                </div>
+                            </div>
+                            <p class="product-description">${product.description || '暂无描述'}</p>
+                            <div class="bottom-bottom-container">
+                                <div class="product-tag">
+                                    ${tagsHtml}
+                                </div>
+                                <p>${formatDate(product.date)}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // 添加点击事件，跳转到产品详情页
+                    productEl.addEventListener('click', () => {
+                        // 跳转到产品详情页并传递产品ID
+                        window.location.href = `product-detial.html?id=${product.id}`;
+                        console.log('Product clicked:', product.title, 'ID:', product.id);
+                    });
+                    
+                    resolve(productEl);
+                });
+            }
+            
+            // 添加视图切换事件监听
+            gridViewBtn.addEventListener('click', switchToGridView);
+            listViewBtn.addEventListener('click', switchToListView);
+            
+            // 添加视图切换按钮样式
+            const viewStyle = document.createElement('style');
+            viewStyle.textContent = `
+                /* 视图切换按钮样式 */
+                .Adjust-the-layout {
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                
+                .Adjust-the-layout.active {
+                    background-color: #EFF6FF;
+                }
+                
+                .Adjust-the-layout.active span {
+                    color: #3B82F6;
+                }
+                
+                /* 列表视图样式 */
+                .product.list-product {
+                    width: 100%;
+                    min-width: auto;
+                    max-width: none;
+                    flex: none;
+                    box-sizing: border-box;
+                    display: flex;
+                    flex-direction: row;
+                }
+                    .product.list-product img{
+                        width: 30%;
+                        height: auto;
+                        border-radius: 12px 0px 0px 12px;
+                    }
+                
+                .list-product-content {
+                    display: flex;
+                    gap: 20px;
+                    width: 100%;
+                    height: auto;
+                }
+                
+                .list-product-content img {
+                    width: 200px;
+                    height: 150px;
+                    object-fit: cover;
+                    flex-shrink: 0;
+                    border-radius: 6px;
+                }
+                
+                .list-product-info {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                }
+                
+                .list-product-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 10px;
+                }
+                
+                .list-product-footer {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-top: 10px;
+                }
+            `;
+            document.head.appendChild(viewStyle);
+        });
+    </script>
+
+</body>
+</html>

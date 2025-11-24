@@ -1,0 +1,476 @@
+/*背景*/            
+.background {
+    background-image: url('../img/index-bg.png');
+    background-repeat: no-repeat;
+    background-size: 100% 753px;;/*强制背景图宽度为容器 100%，高度固定 753px（可能变形）。*/
+    margin: 0;
+    /*position: relative;*/
+}
+
+/*轮播图区域容器*/
+.nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 584px;
+}
+
+/*轮播图左侧文字区域*/
+.nav-left {
+    width: 35%;
+}
+
+/*轮播图左侧文字区域标题*/
+.nav-left .biaoti {
+    font-size: 48px;
+    font-weight: 600;
+    line-height: 48px;
+    margin: 0;
+}
+
+/*轮播图左侧文字区域简介*/
+.nav-left .jianshu {
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 30px;
+    margin: 0;
+    color: #4B5563;
+    margin-top: 30px;
+}
+
+/*轮播图左侧文字区标签*/
+.nav-left h1 {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 16px;
+    margin: 0;
+    color: #3B82F6;
+    margin-top: 30px;
+    margin-right: 10px;
+    border-radius: 30px;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: rgba(255, 255, 255, 0.500);
+    backdrop-filter: blur(10px);
+    border: 1px solid #ffffff;
+}
+
+/*轮播图左侧文字区标签*/
+.nav-left h2 {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 16px;
+    margin: 0;
+    color: #6366F1;
+    margin-top: 30px;
+    margin-right: 10px;
+    border-radius: 30px;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: rgba(255, 255, 255, 0.500);
+    backdrop-filter: blur(10px);
+    border: 1px solid #ffffff;
+}
+
+/*轮播图左侧文字区标签*/
+.nav-left h3 {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 16px;
+    margin: 0;
+    color: #9333EA;
+    margin-top: 30px;
+    margin-right: 10px;
+    border-radius: 30px;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: rgba(255, 255, 255, 0.500);
+    backdrop-filter: blur(10px);
+    border: 1px solid #ffffff;
+}
+
+
+/* 轮播图左侧文字区工具标签容器 */
+.tool-container {
+    margin-top: 30px;
+    display: flex;
+    gap: 20px;
+}
+
+    /*轮播图左侧文字区工具标签*/
+    .tool-container span {
+        font-family: "iconfont" !important;
+        font-size: 30px;
+        font-style: normal;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+.nav-right {
+    width: 35%;
+    display: flex;
+    justify-content: end;
+}
+
+/*轮播图右侧图片*/
+.nav-right img {
+    width: 100%;
+    height: auto;
+    max-height: 598px;
+    max-width: 598px;
+    
+}
+
+/* 容器 */
+.container{
+    width: 100%;
+    display: flex;
+    justify-content: center;/* 主轴居中 */
+}
+
+    /* 精选作品容器 */
+    .product-container{
+        width: 70%;
+        box-sizing: border-box;
+        border-radius: 30px;
+        padding: 34px;
+        padding-bottom: 50px; /* 增加底部内边距，确保阴影完全显示 */
+        background-color: rgba(255, 255, 255, 0.502);
+        border-top: 2px solid rgb(255, 255, 255);
+        backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;/* 垂直排列 */
+        align-items: center;/* 交叉轴居中（垂直居中） */
+        gap: 30px;
+        margin-bottom: 30px;
+        overflow: visible; /* 确保子元素阴影不被裁剪 */
+    }
+
+        /* 精选作品标题 */
+        .title{
+            font-size: 30px;
+            font-weight: 600;
+            line-height: 30px;
+            margin: 0;
+            color: #000000;
+            text-align: center;
+        }
+        .description{
+            font-size: 14px;
+            line-height: 14px;
+            margin: 0;
+            margin-top: 20px;
+            /*margin-bottom: 30px;*/
+            color: #000000;
+            text-align: center;
+        }
+
+        /* 作品列表容器 */
+            .product-list{
+                width: 100%; 
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
+                overflow: visible; /* 确保子元素阴影不被裁剪 */
+            }
+
+            /* 行 */
+                .rows{
+                    width: 100%;
+                    height: auto;
+                    display: flex;
+                    gap: 30px;
+                    padding-bottom: 20px;
+                    padding-left: 5px;
+                    padding-right: 5px;
+                    overflow: visible; /* 确保子元素阴影不被裁剪 */
+                    position: relative;
+                }
+            /* 精选作品项 */
+                .product{
+                    flex: 0 0 calc(33.333% - 20px); /* 使用flex计算宽度，避免溢出 */
+                    min-width: calc(33.333% - 20px);
+                    max-width: calc(33.333% - 20px);
+                    box-sizing: border-box;
+                    height: auto;
+                    border-radius: 12px;
+                    background-color: #ffffff;
+                    border: 1px solid #E1ECFF;
+                    cursor: pointer;
+                    display: flex; /* 纵向弹性布局 */
+                    flex-direction: column;
+                    transition: all 0.3s ease;
+                    overflow: visible;
+                    position: relative;
+                }
+
+                /* 鼠标划过作品悬浮效果 */
+                .product:hover{
+                    box-shadow: 
+                        0 2px 4px rgba(0, 0, 0, 0.05),
+                        0 8px 16px rgba(0, 0, 0, 0.08),
+                        0 16px 32px rgba(0, 0, 0, 0.06);
+                    transform: translateY(-4px) translateZ(0);
+                    z-index: 1;
+                    overflow: visible;
+                }
+
+                /* 精选作品项图片 */
+                    .product img{
+                        width: 100%;
+                        height: auto;
+                        /*max-height: 240px;
+                        max-width: 438px;*/
+                        border-radius: 12px 12px 0px 0px;
+                    }
+
+                /* 底部 */
+                .bottom{
+                    padding: 14px 24px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 20px;
+                    flex: 1; /* 让文本区域可拉伸，底部元素贴底 */
+                }
+                    /* 精选作品项标题 */
+                        .product-title{
+                            font-size: 20px;
+                            font-weight: 600;
+                            line-height: 28px;
+                            margin: 0;
+                            color: #000000;
+                            text-align: left;
+                            white-space: nowrap; /* 单行显示 */
+                            overflow: hidden; /* 超出隐藏 */
+                            text-overflow: ellipsis; /* 省略号 */
+                        }
+                    /* 精选作品项描述 */
+                        .product-description{
+                            font-size: 16px;
+                            line-height: 24px;
+                            margin: 0;
+                            color: #808a99;
+                            text-align: left;
+                            flex: 1; /* 自动填充空白，保证底部对齐 */
+                            display: -webkit-box;
+                            -webkit-line-clamp: 2;
+                            -webkit-box-orient: vertical;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                        }
+                    /* 精选作品项标签容器 */
+                        .product-tag {
+                            display: flex;
+                            gap: 10px;
+                            flex-wrap: wrap;/*项目会在需要时换行，从左到右，从上到下。*/
+                        }
+                    /* 精选作品项标签 */
+                        .product-tag .tag {
+                            font-size: 14px;
+                            font-weight: 400;
+                            line-height: 14px;
+                            margin: 0;
+                            color: #3B82F6;
+                            margin-bottom: 10px;
+                            border-radius: 30px;
+                            padding: 10px 16px;
+                            background-color: #EFF6FF
+                        }
+
+
+
+
+    /* 最新文章容器 */
+    .article-container{
+        width: 100%;
+        background-color: #F9FAFB;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+        /*最新文章*/
+        .article {
+            width: 70%;
+            padding: 34px;
+            box-sizing: border-box;/* 包含padding和border */
+        }
+    
+        /* 最新文章标题和简述容器 */
+        .article-top{
+            margin-bottom: 48px;
+        }
+        /* 最新文章标题 */
+        .article-top .title{
+            font-size: 30px;
+            font-weight: 600;
+            line-height: 30px;
+            margin: 0;
+            color: #000000;
+            text-align: center;
+        }
+        /* 最新文章简述 */
+        .article-top .description{
+            font-size: 14px;
+            line-height: 14px;
+            margin: 0;
+            margin-top: 20px;
+            color: #000000;
+            text-align: center;
+        }
+
+        /* 最新文章列表容器 */
+        .article-list{
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        /* 最新文章列表 */
+        .article-list .article-item{
+            background-color: rgba(255, 255, 255, 0.502);
+            padding: 32px;
+            box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            cursor: pointer;
+        }
+            /* 鼠标划过文章悬浮效果 */
+            .article-item:hover{
+                    box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.2);
+            }
+
+            /* 发布日期和阅读时间容器 */
+            .article-info{
+                display: flex;
+                gap: 10px;
+            }
+            /* 发布日期和阅读时间 */
+            .article-info p{
+                font-size: 14px;
+                line-height: 14px;
+                margin: 0;
+                color: #6B7280;
+            }
+            /* 文章标题 */
+            .article-item .article-title{
+                font-size: 24px;
+                font-weight: 600;
+                line-height: 32px;
+                margin: 0;
+                color: #000000;
+                text-align: left;
+                margin-top: 16px;
+            }
+            /* 文章描述 */
+            .article-item .article-description{
+                font-size: 16px;
+                line-height: 24px;
+                margin: 0;
+                color: #808a99;;
+                text-align: left;
+                margin-top: 16px;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            /* 文章标签容器 */
+            .article-item .article-tag{
+                display: flex;
+                flex-wrap: wrap;
+            }
+            /* 文章标签 */
+            .article-item .article-tag .tag{
+                font-size: 14px;
+                font-weight: 400;
+                line-height: 14px;
+                margin: 0;
+                color: #3B82F6;
+                margin-right: 10px;
+                border-radius: 30px;
+                padding-left: 16px;
+                padding-right: 16px;
+                padding-top: 10px;
+                padding-bottom: 10px;
+                background-color: #EFF6FF
+            }
+            /* 标签和更多容器*/ 
+            .article-item .tag-more{
+                display: flex;
+                justify-content: space-between;
+                margin-top: 16px;
+            }
+            /* 更多 */
+            .article-item .tag-more .more{
+                font-size: 14px;
+                line-height: 32px;
+                margin: 0;
+                color: #3B82F6;
+            }
+
+
+/* 查看更多作品按钮 */
+    .view-more-wrapper{
+        width: 100%;
+    }
+        .view-more-link{
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 14px 16px;
+            background-color: rgba(255, 255, 255, 0.500);/* 与工具标签背景一致 */
+            border: 1px solid #E1ECFF;
+            border-radius: 12px;
+            color: #3B82F6;
+            font-size: 16px;
+            text-decoration: none;
+            box-sizing: border-box;
+            margin-top: 0;
+        }
+        .view-more-link:hover{
+            background-color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+        }
+
+        .view-more-link:hover{
+            background-color: #EFF6FF;
+            border-radius: 12px;
+        }
+
+
+/* 查看更多文章按钮（与文章列表间距 30px） */
+    .view-more-articles-wrapper{
+        width: 100%;
+        margin-top: 30px; /* 与文章项间距一致 */
+    }
+        .view-more-articles-link{
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 14px 16px;
+            background-color: rgba(255, 255, 255, 0.500);
+            border: 1px solid #E1ECFF;
+            border-radius: 12px;
+            color: #3B82F6;
+            font-size: 16px;
+
+            
+            text-decoration: none;
+            box-sizing: border-box;
+            margin-top: 0;
+        }
+        .view-more-articles-link:hover{
+            background-color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+        }
+
+        .view-more-articles-wrapper:hover{
+            background-color: #EFF6FF;
+            border-radius: 12px;
+        }

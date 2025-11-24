@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片顺序API测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-container { max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>图片顺序API测试</h1>
+        
+        <div class="test-section">
+            <h2>1. 获取作品列表</h2>
+            <button onclick="loadProducts()">加载作品</button>
+            <div id="products-result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>2. 测试新的重新排序API</h2>
+            <input type="number" id="product-id" placeholder="作品ID" value="37">
+            <button onclick="testReorderAPI()">测试重新排序</button>
+            <div id="reorder-result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>3. 验证结果</h2>
+            <button onclick="verifyResult()">验证图片顺序</button>
+            <div id="verify-result"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentProduct = null;
+        let authToken = null;
+
+        // 先登录获取token
+        async function login() {
+            try {
+                const response = await fetch('http://localhost:3000/api/users/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success && data.token) {
+                    authToken = data.token;
+                    console.log('登录成功，获取到token:', authToken);
+                    return true;
+                } else {
+                    console.error('登录失败:', data.message);
+                    return false;
+                }
+            } catch (error) {
+                console.error('登录请求失败:', error);
+                return false;
+            }
+        }
+
+        async function loadProducts() {
+            // 先确保已登录
+            if (!authToken) {
+                const loginSuccess = await login();
+                if (!loginSuccess) {
+                    document.getElementById('products-result').innerHTML = 
+                        '<div class="error">登录失败，无法继续</div>';
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/products', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const productsHtml = data.products.map(p => 
+                        `<div>ID: ${p.id}, 标题: ${p.title}, 图片数量: ${p.images ? p.images.length : 0}</div>`
+                    ).join('');
+                    
+                    document.getElementById('products-result').innerHTML = 
+                        `<div class="success">作品加载成功</div><pre>${JSON.stringify(data.products.slice(0, 3), null, 2)}</pre>`;
+                } else {
+                    document.getElementById('products-result').innerHTML = 
+                        `<div class="error">加载失败: ${data.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('products-result').innerHTML = 
+                    `<div class="error">请求失败: ${error.message}</div>`;
+            }
+        }
+
+        async function testReorderAPI() {
+            const productId = document.getElementById('product-id').value;
+            if (!productId) {
+                document.getElementById('reorder-result').innerHTML = 
+                    '<div class="error">请输入作品ID</div>';
+                return;
+            }
+
+            try {
+                // 先获取当前作品信息
+                const productResponse = await fetch(`http://localhost:3000/api/products/${productId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                const productData = await productResponse.json();
+                
+                if (!productData.success) {
+                    document.getElementById('reorder-result').innerHTML = 
+                        `<div class="error">获取作品失败: ${productData.message}</div>`;
+                    return;
+                }
+
+                currentProduct = productData.product;
+                const images = currentProduct.images || [];
+                
+                if (images.length < 2) {
+                    document.getElementById('reorder-result').innerHTML = 
+                        '<div class="error">作品图片数量不足，无法测试排序</div>';
+                    return;
+                }
+
+                // 创建测试数据：交换前两张图片的顺序
+                const reorderedImages = [...images];
+                if (reorderedImages.length >= 2) {
+                    const temp = reorderedImages[0];
+                    reorderedImages[0] = { ...reorderedImages[1], order: 1 };
+                    reorderedImages[1] = { ...temp, order: 2 };
+                    
+                    // 更新其他图片的order
+                    for (let i = 2; i < reorderedImages.length; i++) {
+                        reorderedImages[i] = { ...reorderedImages[i], order: i + 1 };
+                    }
+                }
+
+                console.log('发送的重新排序数据:', reorderedImages);
+
+                // 调用新的API
+                const response = await fetch(`http://localhost:3000/api/products/${productId}/images/reorder`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ images: reorderedImages })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    document.getElementById('reorder-result').innerHTML = 
+                        `<div class="success">重新排序成功！</div>
+                         <pre>发送数据: ${JSON.stringify(reorderedImages, null, 2)}</pre>
+                         <pre>返回结果: ${JSON.stringify(data, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('reorder-result').innerHTML = 
+                        `<div class="error">重新排序失败: ${data.message}</div>
+                         <pre>错误详情: ${JSON.stringify(data, null, 2)}</pre>`;
+                }
+            } catch (error) {
+                document.getElementById('reorder-result').innerHTML = 
+                    `<div class="error">请求失败: ${error.message}</div>`;
+            }
+        }
+
+        async function verifyResult() {
+            const productId = document.getElementById('product-id').value;
+            if (!productId) {
+                document.getElementById('verify-result').innerHTML = 
+                    '<div class="error">请输入作品ID</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/products/${productId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const images = data.product.images || [];
+                    const sortedImages = images.sort((a, b) => a.order - b.order);
+                    
+                    document.getElementById('verify-result').innerHTML = 
+                        `<div class="success">验证完成</div>
+                         <pre>当前图片顺序: ${JSON.stringify(sortedImages, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('verify-result').innerHTML = 
+                        `<div class="error">验证失败: ${data.message}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('verify-result').innerHTML = 
+                    `<div class="error">验证请求失败: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

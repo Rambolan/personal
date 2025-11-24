@@ -1,0 +1,219 @@
+/* 顶部白色磨砂背景 */
+.header-top {
+    display: flex;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.502);
+    width: 100%;
+    height: 96px;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    align-items: center;
+    border-bottom: 2px solid rgb(255, 255, 255);
+    backdrop-filter: blur(10px);
+}
+
+    @font-face {
+    font-family: 'iconfont';
+    src: 
+        url('/iconfont/iconfont.woff2?t=1761797233636') format('woff2'),
+        url('/iconfont/iconfont.woff?t=1761797233636') format('woff'),
+        url('/iconfont/iconfont.ttf?t=1761797233636') format('truetype');
+    }
+
+    /* 顶部 logo */
+    .header-top span {
+        width: 3%;
+        font-family: "iconfont" !important;
+        font-size: 40px;
+        font-style: normal;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* 顶部菜单 */
+    .top-menu {
+        display: flex;
+        justify-content: flex-end;
+        width: 67%;
+    }
+
+    /* 菜单按钮 */
+    .menu {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex; /* 横向排列菜单 */
+        justify-content: center;
+        gap: 20px; /* 菜单项间距 */
+        font-size: 20px;
+        line-height: 44px;
+
+    }
+
+    /* 菜单项样式 */
+    .menu li a {
+        color: rgb(0, 0, 0);
+        text-decoration: none; /* 去除下划线 */
+        padding: 8px 12px;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    /* 鼠标悬停效果 */
+    .menu li a:hover {
+    color: #3B82F6;
+    }
+    
+    /* 当前页面高亮效果 */
+    .menu li a.active {
+    color: #3B82F6;
+    font-weight: 600;
+    }
+
+    /* 联系我按钮 */
+    .button {
+        background-color: #3B82F6;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding-left: 24px;
+        padding-right: 24px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        font-size: 20px;
+    }
+
+    .button a{
+        color: white;
+        text-decoration: none;
+    }
+
+    /* 联系我按钮悬停效果 */
+    .button:hover {
+        background-color: #2563EB;
+    }   
+
+    /* 联系我按钮点击效果 */
+    .button:active {
+        background-color: #1D4ED8;
+    }
+
+/*底部容器*/
+.footer-container{
+    width: 100%;
+    padding-top: 64px;
+    padding-bottom: 64px;
+    background-color: #111827;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+    /* 底部顶部容器 */
+    .footer-top{
+        width: 70%;
+        display: flex;
+        gap: 40px;
+        padding-left: 34px;
+        padding-right: 34px;
+        box-sizing: border-box; 
+    }
+        /* 底部顶部容器内的四个部分 */
+        .footer-top-one{
+                width: 30%;
+        }
+
+        /* 底部顶部容器内的四个部分的图标 */
+        .footer-top-one span{
+                font-family: "iconfont" !important;
+                font-size: 40px;
+                font-style: normal;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                color: #FFFFFF;
+        }
+
+        .footer-top-one p{
+                font-size: 16px;
+                color: #9CA3AF;
+                line-height: 24px;
+        }
+        .footer-top-two{
+                width: 20%;
+        }
+        .footer-top-two p{
+                font-size: 16px;
+                color: #9CA3AF;
+                line-height: 24px;
+        }
+        .footer-top-three{
+                width: 30%;
+        }
+        .footer-top-three p{
+                font-size: 16px;
+                color: #9CA3AF;
+                line-height: 24px;
+        }
+        .footer-top-four{
+                width: 20%;
+        }
+        .footer-top-four p{
+                font-size: 16px;
+                color: #9CA3AF;
+                line-height: 24px;
+        }
+        .footer-top-four span{
+                margin-right: 10px;
+                margin-bottom: 10px;
+                font-family: "iconfont" !important;
+                font-size: 30px;
+                font-style: normal;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                color: #FFFFFF;
+        }
+        /* 底部顶部容器内的四个部分的标题 */
+        .footer-top .footer-top-title{
+                color: #FFFFFF;
+                margin: 0;
+                margin-bottom: 20px;
+        }
+    /* 底部底部容器 */
+    .footer-bottom{
+        width: 70%;
+        padding-left: 34px;
+        padding-right: 34px;
+        padding-top: 20px;
+        box-sizing: border-box; 
+        border-top: 1px solid #1F2937;
+    }
+        .footer-bottom p{
+                font-size: 16px;
+                color: #9CA3AF;
+                line-height: 24px;
+                text-align: center;
+                margin: 0;
+
+        }
+
+/* 分页器 */
+    .page-container{
+        width: 70%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        list-style: none;
+        gap: 20px;
+        margin: 0;
+        padding: 30px 0px 0px 0px;
+    }
+
+    .page-container li{
+        font-size: 16px;
+        color: #6A6A6A;
+        line-height: 16px;
+        padding: 10px 12px;
+        background-color: #FFFFFF;
+        border-radius: 4px;
+    }

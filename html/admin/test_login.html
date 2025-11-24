@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 50px; }
+        .container { max-width: 400px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 20px; }
+        .log { background: #f5f5f5; padding: 10px; margin-top: 20px; max-height: 300px; overflow-y: auto; font-family: monospace; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>登录测试</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>用户名:</label>
+                <input type="text" id="username" value="admin">
+            </div>
+            <div class="form-group">
+                <label>密码:</label>
+                <input type="password" id="password" value="admin123">
+            </div>
+            <button type="submit" id="submitBtn">登录</button>
+        </form>
+        <div id="result"></div>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        const logDiv = document.getElementById('log');
+        const resultDiv = document.getElementById('result');
+        
+        // 日志函数
+        function log(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console[type === 'error' ? 'error' : 'log'](message);
+        }
+
+        // 显示结果
+        function showResult(message, type = 'error') {
+            resultDiv.className = type;
+            resultDiv.textContent = message;
+        }
+
+        // 登录处理
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // 重置结果
+            showResult('');
+            log('开始登录流程...');
+            
+            // 保存原始按钮状态
+            const originalText = submitBtn.textContent;
+            
+            try {
+                // 设置按钮为加载状态
+                submitBtn.disabled = true;
+                submitBtn.textContent = '登录中...';
+                
+                log(`准备发送登录请求，用户名: ${username}`);
+                
+                // 发送数据
+                const data = JSON.stringify({ username, password });
+                log(`发送数据: ${data}`);
+                
+                try {
+                    // 使用fetch API发送异步请求
+                    log('使用fetch API发送请求...');
+                    
+                    const response = await fetch('http://8.136.34.190:3000/api/users/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': '*/*',
+                        },
+                        credentials: 'include', // 包含cookies
+                        body: data
+                    });
+                    
+                    log(`请求完成，状态码: ${response.status}`);
+                    
+                    // 显示所有响应头
+                    const headers = {};
+                    response.headers.forEach((value, name) => {
+                        headers[name] = value;
+                    });
+                    log(`响应头: ${JSON.stringify(headers)}`);
+                    
+                    // 检查响应是否成功
+                    if (!response.ok) {
+                        throw new Error(`HTTP错误! 状态: ${response.status}`);
+                    }
+                    
+                    // 尝试解析JSON
+                    try {
+                        const responseData = await response.json();
+                        log(`解析响应成功: ${JSON.stringify(responseData)}`);
+                        
+                        if (responseData.success) {
+                            showResult('登录成功!', 'success');
+                            log('登录成功，token已保存', 'success');
+                            // 模拟跳转
+                            setTimeout(() => {
+                                log('准备跳转到index.html');
+                            }, 1000);
+                        } else {
+                            showResult(`登录失败: ${responseData.message || '未知错误'}`);
+                        }
+                    } catch (jsonError) {
+                        // 如果不是JSON响应，获取文本内容
+                        const textContent = await response.text();
+                        log(`响应内容: ${textContent}`);
+                        showResult(`非JSON响应: ${textContent}`);
+                    }
+                } catch (fetchError) {
+                    showResult(`请求失败: ${fetchError.message}`);
+                    log(`Fetch错误: ${fetchError.message}`, 'error');
+                    
+                    // 检查是否是CORS错误
+                    if (fetchError.message.includes('NetworkError')) {
+                        log('可能存在CORS问题', 'error');
+                        log('尝试直接使用curl命令测试API');
+                    }
+                }
+            } catch (error) {
+                showResult('登录过程发生异常');
+                log(`异常: ${error.message}`, 'error');
+            } finally {
+                // 恢复按钮状态
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                log('登录流程结束');
+            }
+        });
+    </script>
+</body>
+</html>

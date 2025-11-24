@@ -1,0 +1,55 @@
+/*背景*/            
+.background {
+    height: 1057px;
+    background-image: url('../img/contact-bg.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    margin: 0;
+    background-color: #F9FAFB;
+}
+
+/*中间容器*/
+.middle-container {
+    width: 100%;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    gap: 100px;
+    padding: 85px 0px;
+}
+
+    /*中间顶部容器*/
+    .middle-top-container{
+        width: 100%;
+        height: auto;
+        display: flex;
+        justify-content: center;
+
+    }
+
+        /*中间容器图片*/
+        .middle-container img{
+            width: 570px;
+            height: 635px;
+            border-radius: 12px;
+        }
+
+    /*中间容器底部*/
+    .middle-bottom-container {
+        width: 100%;
+        height: auto;
+        display: flex;
+        justify-content: center;
+        gap: 100px;
+    }
+
+        /*中间容器底部文字*/
+        .middle-bottom-container p{
+            font-size: 22px;
+            font-weight: 600;
+            line-height: 26px;
+            margin: 0;
+            color: #313A63;
+            text-align: left;
+        }

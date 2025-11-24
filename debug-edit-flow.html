@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑页面调试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin: 15px 0; }
+        .image-item { border: 2px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; position: relative; }
+        .image-item img { max-width: 100%; height: 150px; object-fit: cover; border-radius: 4px; }
+        .order-number { background: #3182ce; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin: 5px 0; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; background: #3182ce; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #2c5282; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+        .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .comparison-item { padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>编辑页面完整流程调试</h1>
+    
+    <div class="section">
+        <h3>步骤1: 模拟editProduct函数</h3>
+        <button onclick="simulateEditProduct()">模拟编辑作品45</button>
+        <div id="editLog" class="log"></div>
+    </div>
+    
+    <div class="section">
+        <h3>步骤2: 图片显示对比</h3>
+        <div class="comparison">
+            <div class="comparison-item">
+                <h4>API返回的原始顺序</h4>
+                <div id="originalImages" class="image-grid"></div>
+            </div>
+            <div class="comparison-item">
+                <h4>编辑页面排序后显示</h4>
+                <div id="sortedImages" class="image-grid"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h3>步骤3: 模拟拖拽和保存</h3>
+        <button onclick="simulateDragAndSave()">模拟拖拽前3张图片并保存</button>
+        <div id="saveLog" class="log"></div>
+    </div>
+    
+    <div class="section">
+        <h3>步骤4: 验证保存结果</h3>
+        <button onclick="verifyResult()">验证保存后的顺序</button>
+        <div id="verifyLog" class="log"></div>
+    </div>
+
+    <script>
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJhZG1pbiIsImVtYWlsIjoiYWRtaW5AZXhhbXBsZS5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NjM0NTQ5MzUsImV4cCI6MTc2MzU0MTMzNX0.MjbRH-kRlfPnwLNS0zwUQou94IbuAc3EYJGs-lJnIro';
+        let currentProduct = null;
+        let imageOrder = [];
+        
+        // 完全复制editProduct函数的逻辑
+        async function simulateEditProduct() {
+            const logDiv = document.getElementById('editLog');
+            const originalDiv = document.getElementById('originalImages');
+            const sortedDiv = document.getElementById('sortedImages');
+            
+            try {
+                logDiv.textContent = '开始模拟editProduct函数...\n';
+                
+                // 模拟editProduct函数中的API调用
+                const response = await fetch(`http://localhost:3000/api/products/admin/list`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                logDiv.textContent += `API调用成功，获取到 ${data.data.length} 个作品\n`;
+                
+                if (data.success) {
+                    const product = data.data.find(p => p.id === 45);
+                    
+                    if (product) {
+                        currentProduct = product;
+                        logDiv.textContent += `找到作品45: ${product.title}\n`;
+                        logDiv.textContent += `图片数量: ${product.images ? product.images.length : 0}\n`;
+                        
+                        // 显示原始顺序
+                        originalDiv.innerHTML = '';
+                        if (product.images && product.images.length > 0) {
+                            product.images.forEach((imageObj, index) => {
+                                const imageUrl = typeof imageObj === 'object' ? imageObj.url : imageObj;
+                                const order = typeof imageObj === 'object' ? imageObj.order : (index + 1);
+                                
+                                const item = document.createElement('div');
+                                item.className = 'image-item';
+                                item.innerHTML = `
+                                    <div class="order-number">Order: ${order}</div>
+                                    <img src="${imageUrl}" alt="图片${index + 1}">
+                                    <div>索引: ${index}</div>
+                                `;
+                                originalDiv.appendChild(item);
+                            });
+                        }
+                        
+                        // 模拟编辑页面的排序逻辑
+                        if (product.images && product.images.length > 0) {
+                            imageOrder = [];
+                            
+                            // 先按order字段排序图片
+                            const sortedImages = [...product.images].sort((a, b) => {
+                                const orderA = typeof a === 'object' ? (a.order || 0) : 0;
+                                const orderB = typeof b === 'object' ? (b.order || 0) : 0;
+                                return orderA - orderB;
+                            });
+                            
+                            logDiv.textContent += `\n排序后的图片顺序:\n`;
+                            sortedImages.forEach((imageObj, index) => {
+                                const imageUrl = typeof imageObj === 'object' ? imageObj.url : imageObj;
+                                const order = typeof imageObj === 'object' ? imageObj.order : (index + 1);
+                                logDiv.textContent += `位置${index + 1}: Order ${order} - ${imageUrl.split('/').pop()}\n`;
+                            });
+                            
+                            // 显示排序后的结果
+                            sortedDiv.innerHTML = '';
+                            sortedImages.forEach((imageObj, index) => {
+                                const imageUrl = typeof imageObj === 'object' ? imageObj.url : imageObj;
+                                const order = typeof imageObj === 'object' ? imageObj.order : (index + 1);
+                                
+                                const item = document.createElement('div');
+                                item.className = 'image-item';
+                                item.style.borderColor = '#3182ce';
+                                item.innerHTML = `
+                                    <div class="order-number">位置: ${index + 1}</div>
+                                    <div class="order-number" style="background: #48bb78;">Order: ${order}</div>
+                                    <img src="${imageUrl}" alt="图片${index + 1}">
+                                    <div>${imageUrl.split('/').pop()}</div>
+                                `;
+                                sortedDiv.appendChild(item);
+                                
+                                // 构建imageOrder数组
+                                imageOrder.push({
+                                    url: imageUrl,
+                                    order: order,
+                                    file: null,
+                                    isNew: false,
+                                    originalIndex: index
+                                });
+                            });
+                            
+                            logDiv.textContent += `\n构建的imageOrder数组:\n${JSON.stringify(imageOrder, null, 2)}`;
+                        }
+                    } else {
+                        logDiv.textContent += '未找到作品45\n';
+                    }
+                }
+            } catch (error) {
+                logDiv.textContent += `错误: ${error.message}\n`;
+                console.error('模拟编辑失败:', error);
+            }
+        }
+        
+        async function simulateDragAndSave() {
+            const logDiv = document.getElementById('saveLog');
+            
+            if (!currentProduct) {
+                logDiv.textContent = '请先运行步骤1\n';
+                return;
+            }
+            
+            try {
+                logDiv.textContent = '模拟拖拽前3张图片调换顺序...\n';
+                
+                // 模拟拖拽：前3张图片顺序调换
+                const newImageOrder = [...imageOrder];
+                const temp = newImageOrder[0];
+                newImageOrder[0] = newImageOrder[1];
+                newImageOrder[1] = newImageOrder[2];
+                newImageOrder[2] = temp;
+                
+                logDiv.textContent += '调换后的imageOrder:\n';
+                newImageOrder.forEach((img, index) => {
+                    logDiv.textContent += `位置${index + 1}: ${img.url.split('/').pop()}\n`;
+                });
+                
+                // 模拟保存逻辑
+                const allImages = newImageOrder.map((img, index) => ({
+                    url: img.url,
+                    order: index + 1
+                }));
+                
+                logDiv.textContent += `\n发送到API的数据:\n${JSON.stringify(allImages, null, 2)}\n`;
+                
+                const response = await fetch(`http://localhost:3000/api/products/45/images/reorder`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ images: allImages })
+                });
+                
+                const result = await response.json();
+                logDiv.textContent += `\n保存结果:\n${JSON.stringify(result, null, 2)}\n`;
+                
+                if (result.success) {
+                    logDiv.textContent += '\n保存成功！图片顺序已更新\n';
+                } else {
+                    logDiv.textContent += `\n保存失败: ${result.message}\n`;
+                }
+                
+            } catch (error) {
+                logDiv.textContent += `错误: ${error.message}\n`;
+                console.error('模拟保存失败:', error);
+            }
+        }
+        
+        async function verifyResult() {
+            const logDiv = document.getElementById('verifyLog');
+            
+            try {
+                logDiv.textContent = '验证保存后的结果...\n';
+                
+                const response = await fetch(`http://localhost:3000/api/products/45`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                const product = data.data;
+                
+                logDiv.textContent += `当前数据库中的图片顺序:\n`;
+                product.images.forEach((imageObj, index) => {
+                    const imageUrl = typeof imageObj === 'object' ? imageObj.url : imageObj;
+                    const order = typeof imageObj === 'object' ? imageObj.order : (index + 1);
+                    logDiv.textContent += `Order ${order}: ${imageUrl.split('/').pop()}\n`;
+                });
+                
+                // 检查前3张图片的顺序是否正确
+                const firstThree = product.images.slice(0, 3);
+                logDiv.textContent += `\n前3张图片的顺序验证:\n`;
+                firstThree.forEach((img, index) => {
+                    const expectedOrder = index + 1;
+                    const actualOrder = img.order;
+                    const isCorrect = actualOrder === expectedOrder;
+                    logDiv.textContent += `位置${index + 1}: Order ${actualOrder} ${isCorrect ? '✅' : '❌'}\n`;
+                });
+                
+            } catch (error) {
+                logDiv.textContent += `错误: ${error.message}\n`;
+                console.error('验证失败:', error);
+            }
+        }
+    </script>
+</body>
+</html>

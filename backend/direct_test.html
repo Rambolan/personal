@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>后端直连测试</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ddd; min-height: 200px; }
+        button { margin: 5px; padding: 8px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>后端直连测试页面</h1>
+    <button onclick="testHealth()">测试健康检查</button>
+    <button onclick="testLogin()">测试登录API</button>
+    <div id="result">点击按钮开始测试...</div>
+    
+    <script>
+        const resultDiv = document.getElementById('result');
+        
+        function log(msg, isError = false) {
+            console.log(msg);
+            const logLine = document.createElement('div');
+            logLine.textContent = msg;
+            if (isError) {
+                logLine.className = 'error';
+            } else if (msg.includes('成功') || msg.includes('200')) {
+                logLine.className = 'success';
+            }
+            resultDiv.appendChild(logLine);
+            resultDiv.scrollTop = resultDiv.scrollHeight;
+        }
+        
+        function clearResult() {
+            resultDiv.innerHTML = '';
+        }
+        
+        function testHealth() {
+            clearResult();
+            log('开始测试健康检查接口...');
+            
+            fetch('/health')
+                .then(response => {
+                    log('响应状态: ' + response.status + ' ' + response.statusText);
+                    return response.json();
+                })
+                .then(data => {
+                    log('响应内容: ' + JSON.stringify(data, null, 2));
+                    log('健康检查测试成功！');
+                })
+                .catch(error => {
+                    log('请求错误: ' + error.message, true);
+                });
+        }
+        
+        function testLogin() {
+            clearResult();
+            log('开始测试登录API...');
+            
+            const loginData = {
+                username: 'admin',
+                password: 'admin123'
+            };
+            
+            log('请求数据: ' + JSON.stringify(loginData));
+            
+            fetch('/api/users/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(loginData)
+            })
+                .then(response => {
+                    log('响应状态: ' + response.status + ' ' + response.statusText);
+                    return response.json();
+                })
+                .then(data => {
+                    log('响应内容: ' + JSON.stringify(data, null, 2));
+                    if (data.success) {
+                        log('登录成功！Token: ' + data.data.token.substring(0, 30) + '...');
+                        // 保存token到localStorage
+                        localStorage.setItem('token', data.data.token);
+                        log('Token已保存到localStorage');
+                    } else {
+                        log('登录失败: ' + (data.message || '未知错误'), true);
+                    }
+                })
+                .catch(error => {
+                    log('请求错误: ' + error.message, true);
+                    if (error.stack) {
+                        log('错误栈: ' + error.stack, true);
+                    }
+                });
+        }
+        
+        log('页面加载完成，准备测试');
+    </script>
+</body>
+</html>

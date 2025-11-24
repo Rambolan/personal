@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章API测试</title>
+</head>
+<body>
+    <h1>文章API测试</h1>
+    <div id="result"></div>
+    
+    <script>
+        async function testArticlesAPI() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                console.log('正在测试文章API...');
+                const response = await fetch('http://localhost:3000/api/articles');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP错误! 状态: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('API响应:', data);
+                
+                if (data.success && data.data && data.data.articles) {
+                    const articles = data.data.articles;
+                    resultDiv.innerHTML = `
+                        <h2>API测试成功!</h2>
+                        <p>找到 ${articles.length} 篇文章:</p>
+                        <ul>
+                            ${articles.map(article => `
+                                <li>
+                                    <strong>${article.title}</strong> 
+                                    (ID: ${article.id}, 
+                                    状态: ${article.status ? '已发布' : '未发布'}, 
+                                    特色: ${article.isFeatured ? '是' : '否'})
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p style="color: orange;">API响应格式异常: ${JSON.stringify(data)}</p>`;
+                }
+            } catch (error) {
+                console.error('API测试失败:', error);
+                resultDiv.innerHTML = `<p style="color: red;">API测试失败: ${error.message}</p>`;
+            }
+        }
+        
+        // 页面加载后自动测试
+        testArticlesAPI();
+    </script>
+</body>
+</html>

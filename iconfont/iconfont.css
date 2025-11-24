@@ -1,0 +1,93 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 5052591 */
+  /* Color fonts */
+  src: 
+       url('iconfont.woff2?t=1762335361300') format('woff2'),
+       url('iconfont.woff?t=1762335361300') format('woff'),
+       url('iconfont.ttf?t=1762335361300') format('truetype');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-shijian:before {
+  content: "\e6e9";
+}
+
+.icon-a-paixu-zhengpaixu1x:before {
+  content: "\e606";
+}
+
+.icon-a-paixu-fupaixu1x:before {
+  content: "\e607";
+}
+
+.icon-xingxing:before {
+  content: "\e870";
+}
+
+.icon-bottom-logo:before {
+  content: "\e605";
+}
+
+.icon-top-logo:before {
+  content: "\e603";
+}
+
+.icon-dasuolvetuliebiao:before {
+  content: "\e600";
+}
+
+.icon-liebiao:before {
+  content: "\e601";
+}
+
+.icon-AxureRP:before {
+  content: "\e6b1";
+}
+
+.icon-zhanku:before {
+  content: "\e6c7";
+}
+
+.icon-aixin_shixin:before {
+  content: "\eca1";
+}
+
+.icon-AdobePs:before {
+  content: "\e604";
+}
+
+.icon-sketch:before {
+  content: "\e658";
+}
+
+.icon-douyin:before {
+  content: "\e66e";
+}
+
+.icon-ai:before {
+  content: "\e60e";
+}
+
+.icon-xiaohongshu:before {
+  content: "\e602";
+}
+
+.icon-logo-mastergo:before {
+  content: "\114ad";
+}
+
+.icon-modao:before {
+  content: "\e6df";
+}
+
+.icon-Figma:before {
+  content: "\e86c";
+}
+

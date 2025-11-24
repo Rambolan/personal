@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>基础测试页面</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ddd; min-height: 150px; }
+        button { margin: 5px; padding: 8px; }
+    </style>
+</head>
+<body>
+    <h1>基础API测试</h1>
+    <button onclick="testAPI()">测试API连接</button>
+    <div id="result">点击按钮开始测试...</div>
+    
+    <script>
+        function log(msg) {
+            console.log(msg);
+            document.getElementById('result').textContent += msg + '\n';
+        }
+        
+        function testAPI() {
+            const result = document.getElementById('result');
+            result.textContent = '开始测试...\n';
+            
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', 'http://8.136.34.190:3000/health', true);
+                
+                xhr.onload = function() {
+                    log('请求完成，状态码: ' + this.status);
+                    log('响应内容: ' + this.responseText);
+                };
+                
+                xhr.onerror = function(e) {
+                    log('请求错误: ' + e.type);
+                    log('错误详情: ' + JSON.stringify(e));
+                };
+                
+                xhr.ontimeout = function() {
+                    log('请求超时');
+                };
+                
+                xhr.timeout = 5000;
+                log('发送请求...');
+                xhr.send();
+            } catch (e) {
+                log('JavaScript错误: ' + e.message);
+                log('错误类型: ' + e.name);
+            }
+        }
+    </script>
+</body>
+</html>

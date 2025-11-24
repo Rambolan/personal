@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录调试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #debug-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>登录调试页面</h1>
+    
+    <form id="login-form">
+        <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" name="username" value="admin">
+        </div>
+        <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" name="password" value="admin123">
+        </div>
+        <button type="submit" id="submit-btn">登录</button>
+        <button type="button" id="test-connectivity-btn">测试连通性</button>
+        <button type="button" id="test-post-btn">测试POST请求</button>
+    </form>
+    
+    <div id="debug-info"></div>
+    
+    <script>
+        // 简单的日志记录函数
+        function log(message, type = 'info') {
+            const timestamp = new Date().toISOString();
+            const logEntry = `${timestamp} [${type}] ${message}\n`;
+            const debugInfo = document.getElementById('debug-info');
+            debugInfo.textContent += logEntry;
+            debugInfo.scrollTop = debugInfo.scrollHeight;
+            console[type === 'error' ? 'error' : 'log'](message);
+        }
+        
+        // 通用的fetch请求处理函数
+        async function fetchWithErrorHandling(url, options = {}, actionName = '请求') {
+            try {
+                log(`开始${actionName}: ${url}`);
+                const response = await fetch(url, options);
+                log(`${actionName}响应状态: ${response.status} ${response.statusText}`);
+                
+                // 记录简化的响应头
+                const contentType = response.headers.get('content-type');
+                log(`${actionName}响应内容类型: ${contentType}`);
+                
+                // 简化的响应处理
+                if (contentType && contentType.includes('application/json')) {
+                    try {
+                        const data = await response.json();
+                        log(`${actionName}数据: ${JSON.stringify(data)}`, response.ok ? 'success' : 'error');
+                        return { success: response.ok, data };
+                    } catch (jsonError) {
+                        log(`${actionName}JSON解析错误: ${jsonError.message}`, 'error');
+                        return { success: false, error: `无法解析JSON响应: ${jsonError.message}` };
+                    }
+                } else {
+                    const text = await response.text();
+                    log(`${actionName}文本响应: ${text.slice(0, 100)}${text.length > 100 ? '...' : ''}`, response.ok ? 'success' : 'error');
+                    return { success: response.ok, text };
+                }
+            } catch (error) {
+                log(`${actionName}错误: ${error.message}`, 'error');
+                return { success: false, error: error.message };
+            }
+        }
+        
+        // 登录处理
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // 清除之前的调试信息
+            document.getElementById('debug-info').textContent = '';
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = document.getElementById('submit-btn');
+            
+            if (!username || !password) {
+                log('请输入用户名和密码', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            log(`登录信息 - 用户名: ${username}`);
+            
+            try {
+                const result = await fetchWithErrorHandling(
+                     'http://8.136.34.190:3000/api/users/login',
+                    {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    },
+                    '登录'
+                );
+                
+                if (result.success && result.data && result.data.success) {
+                    log('登录成功！', 'success');
+                    // 保存token
+                    if (result.data.data && result.data.data.token) {
+                        localStorage.setItem('token', result.data.data.token);
+                        log(`Token已保存到localStorage`, 'success');
+                    }
+                } else {
+                    log(`登录失败: ${result.data?.message || result.error || '未知错误'}`, 'error');
+                }
+            } finally {
+                submitBtn.disabled = false;
+                log('登录按钮已启用');
+            }
+        });
+        
+        // 测试连通性
+        document.getElementById('test-connectivity-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('test-connectivity-btn');
+            btn.disabled = true;
+            
+            try {
+                await fetchWithErrorHandling(
+                    'http://8.136.34.190:3000/api/test-connectivity',
+                    { method: 'GET', credentials: 'include' },
+                    '连通性测试'
+                );
+            } finally {
+                btn.disabled = false;
+            }
+        });
+        
+        // 测试POST请求
+        document.getElementById('test-post-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('test-post-btn');
+            btn.disabled = true;
+            
+            try {
+                await fetchWithErrorHandling(
+                    'http://8.136.34.190:3000/api/test-post',
+                    {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ test: 'data', timestamp: new Date().toISOString() })
+                    },
+                    'POST请求测试'
+                );
+            } finally {
+                btn.disabled = false;
+            }
+        });
+        
+        log('页面加载完成，表单准备就绪');
+    </script>
+</body>
+</html>

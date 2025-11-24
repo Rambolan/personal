@@ -1,0 +1,71 @@
+/*背景*/            
+    .background {
+        height: 364px;
+        background-image: url('/Users/juwan/Desktop/code/personal web/img/product-bg.png');
+        background-repeat: no-repeat;
+        background-size: cover;
+        margin: 0;
+        background-color: #F9FAFB;
+    }
+
+/*中间容器*/  
+    .container{
+        width: 100%;
+        box-sizing: border-box;
+        padding-top: 50px;
+        padding-bottom: 50px;
+        display: flex;
+        flex-direction: column;/* 垂直排列 */
+        align-items: center;/* 交叉轴居中（垂直居中） */
+
+    }
+
+    /* 中间文章容器 */
+    .artical-detial-container{
+        width: 70%;
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;/* 交叉轴居中（垂直居中） */
+        gap: 30px;
+        padding: 34px;
+        background-color: #FFFFFF;
+        border-radius: 30px;
+        box-sizing: border-box;
+    }
+
+        /*标题*/  
+        .title{
+            font-size: 30px;
+            font-weight: 600;
+            line-height: 36px;
+            margin: 0;
+            color: #000000;
+        }
+        
+        
+
+        /* 发布时间容器 */
+        .time-container{
+            display: flex;
+            align-items: center;/* 上下居中 */
+            gap: 4px;
+        }
+            /* 文章发布时间 */
+            .time-container p{
+                font-size: 16px;
+                line-height: 16px;
+                margin: 0;
+                color: #808a99;
+                text-align: left;
+            }
+
+        /* 文章内容 */
+        .artical-container p{
+            font-size: 18px;
+            line-height: 30px;
+            margin: 0;
+            color: #000000;
+            text-align: left;
+        }
+        

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片处理调试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; font-family: monospace; white-space: pre-wrap; max-height: 400px; overflow-y: auto; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; }
+    </style>
+</head>
+<body>
+    <h1>图片处理实时调试</h1>
+    
+    <div class="section">
+        <h3>1. 获取作品信息</h3>
+        <input type="number" id="productId" placeholder="作品ID" value="41">
+        <button onclick="getProduct()">获取作品</button>
+        <div id="productInfo" class="log"></div>
+    </div>
+    
+    <div class="section">
+        <h3>2. 模拟编辑保存过程</h3>
+        <button onclick="simulateEditProcess()">模拟编辑保存</button>
+        <div id="editProcessLog" class="log"></div>
+    </div>
+    
+    <div class="section">
+        <h3>3. 对比保存前后</h3>
+        <button onclick="compareBeforeAfter()">对比图片变化</button>
+        <div id="compareResult" class="log"></div>
+    </div>
+
+    <script>
+        let originalProduct = null;
+        let currentProduct = null;
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJhZG1pbiIsImVtYWlsIjoiYWRtaW5AZXhhbXBsZS5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NjM0NTQ5MzUsImV4cCI6MTc2MzU0MTMzNX0.MjbRH-kRlfPnwLNS0zwUQou94IbuAc3EYJGs-lJnIro';
+        
+        function addLog(logDiv, message, type = '') {
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            if (type) {
+                logEntry.className = type;
+            }
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        async function getProduct() {
+            const productId = document.getElementById('productId').value;
+            const logDiv = document.getElementById('productInfo');
+            logDiv.innerHTML = '';
+            
+            try {
+                addLog(logDiv, '正在获取作品信息...');
+                
+                const response = await fetch(`http://localhost:3000/api/products/${productId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    originalProduct = data.data;
+                    currentProduct = JSON.parse(JSON.stringify(data.data)); // 深拷贝
+                    
+                    addLog(logDiv, `作品获取成功：${originalProduct.title}`, 'success');
+                    addLog(logDiv, `原始图片数量：${originalProduct.images ? originalProduct.images.length : 0}`);
+                    
+                    if (originalProduct.images && originalProduct.images.length > 0) {
+                        addLog(logDiv, '原始图片列表：');
+                        originalProduct.images.forEach((img, index) => {
+                            const url = img.url || img;
+                            addLog(logDiv, `  ${index + 1}. ${url}`);
+                        });
+                    }
+                } else {
+                    addLog(logDiv, `获取失败：${data.message}`, 'error');
+                }
+            } catch (error) {
+                addLog(logDiv, `错误：${error.message}`, 'error');
+            }
+        }
+        
+        async function simulateEditProcess() {
+            if (!currentProduct) {
+                alert('请先获取作品信息');
+                return;
+            }
+            
+            const logDiv = document.getElementById('editProcessLog');
+            logDiv.innerHTML = '';
+            
+            try {
+                addLog(logDiv, '开始模拟编辑保存过程...');
+                
+                // 模拟前端的图片数组构建逻辑
+                const productId = currentProduct.id;
+                const allImages = [];
+                const processedUrls = new Set();
+                
+                // 模拟没有新图片上传的情况
+                const uploadData = { success: true, data: { newImages: [] } };
+                const newImageMap = new Map();
+                
+                addLog(logDiv, '模拟DOM中的图片项处理...');
+                
+                // 模拟处理现有图片（假设有3张图片）
+                const mockImageItems = [
+                    { order: 1, url: currentProduct.images[0].url || currentProduct.images[0] },
+                    { order: 2, url: currentProduct.images[1].url || currentProduct.images[1] },
+                    { order: 3, url: currentProduct.images[2].url || currentProduct.images[2] }
+                ];
+                
+                mockImageItems.forEach((item, domIndex) => {
+                    addLog(logDiv, `处理DOM项 ${domIndex}: order=${item.order}, url=${item.url}`);
+                    
+                    let imageUrl = null;
+                    
+                    // 模拟 imageOrder 查找逻辑
+                    const imageItem = { url: item.url }; // 假设找到了对应的imageItem
+                    
+                    if (imageItem) {
+                        imageUrl = imageItem.url;
+                        addLog(logDiv, `  从imageItem获取图片: ${imageUrl}`);
+                    } else {
+                        addLog(logDiv, `  未找到imageItem，从DOM获取: ${item.url}`, 'warning');
+                        imageUrl = item.url;
+                    }
+                    
+                    // 检查重复
+                    if (imageUrl && !processedUrls.has(imageUrl)) {
+                        processedUrls.add(imageUrl);
+                        allImages.push({
+                            url: imageUrl,
+                            order: domIndex + 1
+                        });
+                        addLog(logDiv, `  ✅ 添加图片到数组: ${imageUrl} (order: ${domIndex + 1})`);
+                    } else if (imageUrl && processedUrls.has(imageUrl)) {
+                        addLog(logDiv, `  ⚠️ 跳过重复图片: ${imageUrl}`, 'warning');
+                    }
+                });
+                
+                addLog(logDiv, `最终图片数组数量: ${allImages.length}`);
+                addLog(logDiv, '发送的图片数组:');
+                allImages.forEach((img, index) => {
+                    addLog(logDiv, `  ${index + 1}. ${img.url} (order: ${img.order})`);
+                });
+                
+                // 发送到后端
+                addLog(logDiv, '正在发送图片顺序更新请求...');
+                
+                const response = await fetch(`http://localhost:3000/api/products/${productId}/images/reorder`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ images: allImages })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    addLog(logDiv, '✅ 图片顺序更新成功', 'success');
+                    addLog(logDiv, `后端返回图片数量: ${result.data.images ? result.data.images.length : 0}`);
+                    
+                    if (result.data.images && result.data.images.length > 0) {
+                        addLog(logDiv, '后端返回图片列表：');
+                        result.data.images.forEach((img, index) => {
+                            addLog(logDiv, `  ${index + 1}. ${img.url} (order: ${img.order})`);
+                        });
+                    }
+                } else {
+                    addLog(logDiv, `❌ 图片顺序更新失败: ${result.message}`, 'error');
+                }
+                
+            } catch (error) {
+                addLog(logDiv, `❌ 错误：${error.message}`, 'error');
+            }
+        }
+        
+        async function compareBeforeAfter() {
+            const logDiv = document.getElementById('compareResult');
+            logDiv.innerHTML = '';
+            
+            if (!originalProduct) {
+                addLog(logDiv, '请先获取作品信息', 'warning');
+                return;
+            }
+            
+            try {
+                addLog(logDiv, '正在获取最新作品信息...');
+                
+                const response = await fetch(`http://localhost:3000/api/products/${originalProduct.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    const updatedProduct = data.data;
+                    
+                    const originalCount = originalProduct.images ? originalProduct.images.length : 0;
+                    const updatedCount = updatedProduct.images ? updatedProduct.images.length : 0;
+                    
+                    addLog(logDiv, `=== 图片数量对比 ===`);
+                    addLog(logDiv, `保存前: ${originalCount} 张`);
+                    addLog(logDiv, `保存后: ${updatedCount} 张`);
+                    
+                    if (originalCount !== updatedCount) {
+                        addLog(logDiv, `⚠️ 图片数量发生变化！差异: ${updatedCount - originalCount}`, 'warning');
+                    } else {
+                        addLog(logDiv, `✅ 图片数量保持一致`, 'success');
+                    }
+                    
+                    addLog(logDiv, `=== 详细对比 ===`);
+                    
+                    // 检查图片URL变化
+                    const originalUrls = originalProduct.images.map(img => img.url || img);
+                    const updatedUrls = updatedProduct.images.map(img => img.url || img);
+                    
+                    addLog(logDiv, '保存前图片URLs:');
+                    originalUrls.forEach((url, index) => {
+                        addLog(logDiv, `  ${index + 1}. ${url}`);
+                    });
+                    
+                    addLog(logDiv, '保存后图片URLs:');
+                    updatedUrls.forEach((url, index) => {
+                        addLog(logDiv, `  ${index + 1}. ${url}`);
+                    });
+                    
+                    // 检查是否有图片丢失
+                    const lostImages = originalUrls.filter(url => !updatedUrls.includes(url));
+                    if (lostImages.length > 0) {
+                        addLog(logDiv, `⚠️ 丢失的图片:`, 'error');
+                        lostImages.forEach(url => {
+                            addLog(logDiv, `  - ${url}`, 'error');
+                        });
+                    }
+                    
+                    // 检查是否有新增图片
+                    const newImages = updatedUrls.filter(url => !originalUrls.includes(url));
+                    if (newImages.length > 0) {
+                        addLog(logDiv, `新增的图片:`);
+                        newImages.forEach(url => {
+                            addLog(logDiv, `  + ${url}`);
+                        });
+                    }
+                    
+                } else {
+                    addLog(logDiv, `获取最新作品信息失败: ${data.message}`, 'error');
+                }
+                
+            } catch (error) {
+                addLog(logDiv, `错误：${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

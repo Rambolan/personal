@@ -1,0 +1,93 @@
+/*背景*/            
+.background {
+    background-image: url('../img/about-img.png');
+    background-repeat: no-repeat;
+    background-size: 100% 1231px;;/*强制背景图宽度为容器 100%，高度固定 753px（可能变形）。*/
+    margin: 0;
+    /*position: relative;*/
+}
+
+
+/*中间容器*/  
+.container{
+    width: 100%;
+    box-sizing: border-box;
+    padding-top: 50px;
+    padding-bottom: 50px;
+    display: flex;
+    flex-direction: column;/* 垂直排列 */
+    align-items: center;/* 交叉轴居中（垂直居中） */
+}
+
+/*标题*/  
+.title{
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 36px;
+    margin: 0;
+    color: #000000;
+    margin-bottom: 50px;
+}
+
+/* 列表 */
+.list{
+    width: 70%;
+    display: flex;
+    gap: 30px;
+}
+    /* 列表左边 */
+    .left{
+        width: 2%;
+        display: flex;
+        flex-direction: column;/* 垂直排列 */
+        align-items: center;/* 交叉轴居中（垂直居中） */
+    }
+    .left .yuanquan{
+        width: 16px;
+        height: 16px;
+        background-color: #ffffff;
+        box-shadow: inset 0 0 0 4px #3B82F6;/* 内描边：2px 红色实线 */
+        border-radius: 20px;
+    }
+
+    .left .shuxian{
+        width: 3px;
+        height: 300px;
+        background-color: #3B82F6;
+    }
+
+    /* 列表右边 */
+    .right{
+        width: 98%;
+    }
+    .right .date{
+        font-size: 20px;
+        line-height: 28px;
+        margin: 0;
+        color: #313A63;
+        margin-bottom: 20px;
+    }
+    .right .content{
+        background-color: rgba(255, 255, 255, 0.502);
+        border-radius: 30px;
+        padding: 30px;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgb(255, 255, 255);
+        display: flex;
+        flex-direction: column;/* 垂直排列 */
+        gap: 20px;
+    }
+    .right .content .content-list{
+        display: flex;
+    }
+    .right .content .content-list p1{
+        font-size: 18px;
+        line-height: 24px;
+        color: #86909C;
+        white-space: nowrap; /* 核心：文字不换行 */
+    }
+    .right .content .content-list p2{
+        font-size: 18px;
+        line-height: 24px;
+        color: #292929;
+    }

@@ -1,0 +1,2587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理</title>
+    <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            width: 250px;
+            background: #1e1e2f;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #2c2c3e;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            list-style: none;
+        }
+        
+        .nav-link {
+            display: block;
+            padding: 15px 25px;
+            color: #a0aec0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-link:hover,
+        .nav-link.active {
+            background: #2c2c3e;
+            color: white;
+            border-left-color: #667eea;
+        }
+        
+        .nav-link i {
+            margin-right: 10px;
+        }
+        
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #2c2c3e;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+        
+        .user-details h3 {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .user-details p {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h2 {
+            font-size: 24px;
+            color: #2d3748;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c53030;
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+            margin-left: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+        
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-title {
+            font-size: 14px;
+            color: #718096;
+            font-weight: 500;
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .card-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        /* 表格样式 */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-header h3 {
+            font-size: 18px;
+            color: #2d3748;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box input {
+            padding: 8px 15px 8px 40px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            width: 250px;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background-color: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        td {
+            color: #2d3748;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-small {
+            padding: 5px 12px;
+            font-size: 14px;
+        }
+        
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            font-size: 20px;
+            color: #2d3748;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #a0aec0;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #4a5568;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* 封面预览样式 */
+        .cover-preview {
+            width: 200px;
+            height: 120px;
+            border: 2px dashed #ccc;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            background-color: #f9f9f9;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cover-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+        
+        .cover-preview span {
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 状态和精选标签样式 */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-published {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-draft {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .featured-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .featured-yes {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .featured-no {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        /* 消息提示 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            z-index: 1001;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            background: #38a169;
+        }
+        
+        .toast.error {
+            background: #e53e3e;
+        }
+        
+        .toast.info {
+            background: #3182ce;
+        }
+        
+        /* 标签样式 */
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .tag-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .tag-danger {
+            background: #fed7d7;
+            color: #c53030;
+        }
+        
+        .tag-warning {
+            background: #feebc8;
+            color: #c05621;
+        }
+        
+        /* 图片预览样式 */
+        .image-preview-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: move;
+            user-select: none;
+        }
+        
+        .image-preview-item:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+        
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+        
+        .image-preview-item .order-number {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .image-preview-item .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(229, 62, 62, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .image-preview-item:hover .delete-btn {
+            display: flex;
+        }
+        
+        .image-preview-item:hover .order-number {
+            display: none;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+            
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            table {
+                min-width: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>管理控制台</h1>
+        </div>
+        
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link active" id="products-link">
+                    <i>🎨</i> 作品管理
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="#" class="nav-link" id="users-link">
+                    <i>👥</i> 用户管理
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" id="articles-link">
+                    <i>📝</i> 文章管理
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link" id="settings-link">
+                    <i>⚙️</i> 系统设置
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="user-avatar">AD</div>
+                <div class="user-details">
+                    <h3 id="user-name">管理员</h3>
+                    <p id="user-role">超级管理员</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <header class="header">
+            <h2 id="page-title">仪表盘</h2>
+            <div class="header-actions">
+                <span id="current-date"></span>
+                <button class="btn btn-secondary" id="logout-btn">退出登录</button>
+            </div>
+        </header>
+        
+        <div class="content">
+            
+            <!-- 作品管理内容 -->
+            <div id="products-content" class="page-content" style="display: none;">
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>作品管理</h3>
+                        <div class="search-box">
+                            <i>🔍</i>
+                            <input type="text" placeholder="搜索作品..." id="product-search">
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 20px;">
+                        <button class="btn btn-primary" id="add-product-btn">添加作品</button>
+                    </div>
+                    
+                    <table id="products-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>标题</th>
+                                <th>封面</th>
+                                <th>喜欢程度</th>
+                                <th>是否精选</th>
+                                <th>发布时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+
+            
+            <!-- 用户管理内容 -->
+            <div id="users-content" class="page-content" style="display: none;">
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>用户管理</h3>
+                        <div class="search-box">
+                            <i>🔍</i>
+                            <input type="text" placeholder="搜索用户..." id="user-search">
+                        </div>
+                    </div>
+                    
+                    <div style="padding: 20px;">
+                        <button class="btn btn-primary" id="add-user-btn">添加用户</button>
+                    </div>
+                    
+                    <table id="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>用户名</th>
+                                <th>邮箱</th>
+                                <th>角色</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- 系统设置内容 -->
+            <div id="settings-content" class="page-content" style="display: none;">
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>系统设置</h3>
+                    </div>
+                    
+                    <div style="padding: 20px;">
+                        <form id="settings-form">
+                            <div class="form-group">
+                                <label for="site-title">网站标题</label>
+                                <input type="text" id="site-title" value="个人作品集" placeholder="网站标题">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="site-description">网站描述</label>
+                                <textarea id="site-description" placeholder="网站描述">我的个人设计作品集网站</textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="site-keywords">关键词</label>
+                                <input type="text" id="site-keywords" value="设计,作品集,UI,UX" placeholder="关键词，用逗号分隔">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="page-size">每页显示数量</label>
+                                <select id="page-size">
+                                    <option value="12">12</option>
+                                    <option value="24">24</option>
+                                    <option value="36">36</option>
+                                </select>
+                            </div>
+                            
+                            <div style="text-align: right; margin-top: 30px;">
+                                <button type="submit" class="btn btn-primary">保存设置</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 文章管理内容 -->
+            <div id="articles-content" class="page-content" style="display: none;">
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>文章管理</h3>
+                        <div class="search-box">
+                            <input type="text" id="article-search" placeholder="搜索文章标题...">
+                            <button class="btn btn-secondary" id="article-search-btn">搜索</button>
+                        </div>
+                        
+                    </div>
+                    
+                    <div class="table-controls">
+                        <button class="btn btn-primary" id="add-article-btn">
+                            添加文章
+                        </button>
+                    </div>
+                    
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>标题</th>
+                                <th>封面</th>
+                                <th>状态</th>
+                                <th>是否精选</th>
+                                <th>浏览量</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="article-table-body">
+                            <!-- 文章数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                    
+                    <div class="pagination" id="article-pagination">
+                        <!-- 分页将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 作品编辑模态框 -->
+    <div class="modal" id="product-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">添加作品</h3>
+                <button class="modal-close" id="close-modal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="product-form">
+                    <input type="hidden" id="product-id">
+                    
+                    <div class="form-group">
+                        <label for="product-title">作品标题</label>
+                        <input type="text" id="product-title" required placeholder="请输入作品标题">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-cover">作品封面（只能上传一张）</label>
+                        <input type="file" id="product-cover" accept="image/*" required>
+                        <div id="cover-preview" style="margin-top: 10px;">
+                            <!-- 封面预览会在这里动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-images">作品图片（可上传多张，只在作品详情页显示）</label>
+                        <input type="file" id="product-images" accept="image/*" multiple>
+                        <div id="images-preview" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 10px;">
+                            <!-- 作品图片预览会在这里动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-description">作品描述</label>
+                        <textarea id="product-description" placeholder="请输入作品描述"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-stars">喜欢程度</label>
+                        <select id="product-stars">
+                            <option value="1">1 星</option>
+                            <option value="2">2 星</option>
+                            <option value="3" selected>3 星</option>
+                            <option value="4">4 星</option>
+                            <option value="5">5 星</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="product-tags">软件标签</label>
+                        <input type="text" id="product-tags" placeholder="例如：APP设计,网页设计，用逗号分隔">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>是否精选（显示在首页）</label>
+                        <div style="display: flex; gap: 20px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="radio" name="product-featured" id="product-featured-yes" value="true">
+                                <span style="margin-left: 5px;">是</span>
+                            </label>
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="radio" name="product-featured" id="product-featured-no" value="false" checked>
+                                <span style="margin-left: 5px;">否</span>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-modal">取消</button>
+                <button class="btn btn-primary" id="save-product">保存</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <!-- 用户编辑模态框 -->
+    <div class="modal" id="user-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="user-modal-title">添加用户</h3>
+                <button class="modal-close" id="close-user-modal">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="user-form">
+                    <input type="hidden" id="edit-user-id">
+                    
+                    <div class="form-group">
+                        <label for="edit-username">用户名</label>
+                        <input type="text" id="edit-username" required placeholder="请输入用户名">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-email">邮箱</label>
+                        <input type="email" id="edit-email" required placeholder="请输入邮箱">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-password">密码</label>
+                        <input type="password" id="edit-password" placeholder="不修改请留空">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-role">角色</label>
+                        <select id="edit-role">
+                            <option value="editor">编辑</option>
+                            <option value="admin">管理员</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-status">状态</label>
+                        <select id="edit-status">
+                            <option value="true" selected>启用</option>
+                            <option value="false">禁用</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-user-modal">取消</button>
+                <button class="btn btn-primary" id="save-user">保存</button>
+            </div>
+    </div>
+    </div>
+    
+    <!-- 文章编辑模态框 -->
+    <div class="modal" id="article-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="article-modal-title">添加文章</h3>
+                <button class="modal-close" id="close-article-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="article-form">
+                    <input type="hidden" id="article-id">
+                    <div class="form-group">
+                        <label for="article-title">文章标题 *</label>
+                        <input type="text" id="article-title" placeholder="请输入文章标题">
+                    </div>
+                    <div class="form-group">
+                        <label for="article-cover">文章封面 *</label>
+                        <div class="file-upload">
+                            <input type="file" id="article-cover" accept="image/*">
+                            <div id="article-cover-preview" class="cover-preview">
+                                <span>预览区域</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="article-content">文章内容 *</label>
+                        <textarea id="article-content" rows="10" placeholder="请输入文章内容"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="article-status">状态 *</label>
+                        <select id="article-status">
+                            <option value="published">已发布</option>
+                            <option value="draft">草稿</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 8px;">是否精选</label>
+                        <div class="radio-group" style="display: flex; gap: 20px; align-items: center;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="radio" name="article-featured" value="true" style="margin-right: 6px;">
+                                <span style="user-select: none;">是</span>
+                            </label>
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="radio" name="article-featured" value="false" checked style="margin-right: 6px;">
+                                <span style="user-select: none;">否</span>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-article-modal">取消</button>
+                <button class="btn btn-primary" id="save-article">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 消息提示 -->
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查登录状态
+            checkLogin();
+            
+            // 初始化页面
+            initPage();
+            
+            // 绑定导航事件
+            bindNavigation();
+            
+            // 绑定按钮事件
+            bindButtonEvents();
+        });
+        
+        // 检查登录状态
+        function checkLogin() {
+            const token = localStorage.getItem('adminToken');
+            const userInfo = localStorage.getItem('adminUser');
+            
+            if (!token || !userInfo) {
+                // 未登录，跳转到登录页
+                window.location.href = 'login.html';
+                return false;
+            }
+            
+            // 检查token是否过期
+            try {
+                const decodedToken = parseJwt(token);
+                if (decodedToken.exp < Date.now() / 1000) {
+                    // token已过期
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminUser');
+                    showToast('登录已过期，请重新登录', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                    return false;
+                }
+            } catch (e) {
+                // token解析失败
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUser');
+                window.location.href = 'login.html';
+                return false;
+            }
+            
+            // 更新用户信息
+            try {
+                const user = JSON.parse(userInfo);
+                document.getElementById('user-name').textContent = user.username;
+                document.getElementById('user-role').textContent = user.role === 'admin' ? '超级管理员' : '编辑';
+                document.getElementById('user-avatar').textContent = user.username.charAt(0).toUpperCase();
+            } catch (e) {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminUser');
+                window.location.href = 'login.html';
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // 解析JWT token
+        function parseJwt(token) {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            
+            return JSON.parse(jsonPayload);
+        }
+        
+        // 初始化页面
+        function initPage() {
+            // 设置当前日期
+            const now = new Date();
+            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('current-date').textContent = now.toLocaleDateString('zh-CN', dateOptions);
+            
+            // 默认显示作品管理页面
+            document.getElementById('page-title').textContent = '作品管理';
+            document.getElementById('products-content').style.display = 'block';
+            loadProducts();
+        }
+        
+        // 绑定导航事件
+        function bindNavigation() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pageContents = document.querySelectorAll('.page-content');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // 移除所有活动状态
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    
+                    // 添加当前活动状态
+                    this.classList.add('active');
+                    
+                    // 隐藏所有内容
+                    pageContents.forEach(content => content.style.display = 'none');
+                    
+                    // 显示对应内容
+                    const linkId = this.id;
+                    let contentId = '';
+                    
+                    if (linkId === 'products-link') {
+                        contentId = 'products-content';
+                        document.getElementById('page-title').textContent = '作品管理';
+                        loadProducts();
+                    }
+                    
+                    if (linkId === 'users-link') {
+                        contentId = 'users-content';
+                        document.getElementById('page-title').textContent = '用户管理';
+                        loadUsers();
+                    }
+                    
+                    if (linkId === 'settings-link') {
+                        contentId = 'settings-content';
+                        document.getElementById('page-title').textContent = '系统设置';
+                    }
+                    
+                    if (linkId === 'articles-link') {
+                        contentId = 'articles-content';
+                        document.getElementById('page-title').textContent = '文章管理';
+                        loadArticles();
+                    }
+                    
+                    if (contentId) {
+                        document.getElementById(contentId).style.display = 'block';
+                    }
+                });
+            });
+        }
+        
+        // 绑定按钮事件
+        function bindButtonEvents() {
+            // 退出登录
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                if (confirm('确定要退出登录吗？')) {
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminUser');
+                    window.location.href = 'login.html';
+                }
+            });
+            
+            // 添加作品按钮
+            document.getElementById('add-product-btn').addEventListener('click', function() {
+                openProductModal();
+            });
+            
+            // 添加用户按钮
+            document.getElementById('add-user-btn').addEventListener('click', function() {
+                openUserModal();
+            });
+            
+            // 关闭模态框
+            document.getElementById('close-modal').addEventListener('click', closeProductModal);
+            document.getElementById('cancel-modal').addEventListener('click', closeProductModal);
+            
+            // 关闭用户模态框
+            document.getElementById('close-user-modal').addEventListener('click', closeUserModal);
+            document.getElementById('cancel-user-modal').addEventListener('click', closeUserModal);
+            
+            // 保存作品
+            document.getElementById('save-product').addEventListener('click', saveProduct);
+            
+            // 保存用户
+            document.getElementById('save-user').addEventListener('click', saveUser);
+            
+            // 添加文章按钮
+            document.getElementById('add-article-btn').addEventListener('click', function() {
+                openArticleModal();
+            });
+            
+            // 关闭文章模态框
+            document.getElementById('close-article-modal').addEventListener('click', closeArticleModal);
+            document.getElementById('cancel-article-modal').addEventListener('click', closeArticleModal);
+            
+            // 保存文章
+            document.getElementById('save-article').addEventListener('click', saveArticle);
+            
+            // 文章搜索
+            document.getElementById('article-search-btn').addEventListener('click', function() {
+                const searchTerm = document.getElementById('article-search').value.trim();
+                loadArticles(1, searchTerm);
+            });
+            
+            // 文章搜索框回车事件
+            document.getElementById('article-search').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const searchTerm = e.target.value.trim();
+                    loadArticles(1, searchTerm);
+                }
+            });
+            
+            // 保存设置
+            document.getElementById('settings-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveSettings();
+            });
+            
+            // 已移除封面预览，使用统一的图片上传预览
+            
+            // 作品封面预览
+            document.getElementById('product-cover').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const previewContainer = document.getElementById('cover-preview');
+                
+                // 清空现有预览
+                previewContainer.innerHTML = '';
+                
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const previewItem = document.createElement('div');
+                        previewItem.style.position = 'relative';
+                        
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.style.maxWidth = '200px';
+                        img.style.maxHeight = '150px';
+                        img.style.objectFit = 'cover';
+                        img.style.borderRadius = '4px';
+                        img.style.border = '2px solid #3182ce';
+                        
+                        const removeBtn = document.createElement('button');
+                        removeBtn.textContent = '×';
+                        removeBtn.style.position = 'absolute';
+                        removeBtn.style.top = '-10px';
+                        removeBtn.style.right = '-10px';
+                        removeBtn.style.background = 'red';
+                        removeBtn.style.color = 'white';
+                        removeBtn.style.border = 'none';
+                        removeBtn.style.borderRadius = '50%';
+                        removeBtn.style.width = '20px';
+                        removeBtn.style.height = '20px';
+                        removeBtn.style.display = 'flex';
+                        removeBtn.style.alignItems = 'center';
+                        removeBtn.style.justifyContent = 'center';
+                        removeBtn.style.cursor = 'pointer';
+                        removeBtn.addEventListener('click', function() {
+                            previewItem.remove();
+                            document.getElementById('product-cover').value = '';
+                        });
+                        
+                        previewItem.appendChild(img);
+                        previewItem.appendChild(removeBtn);
+                        previewContainer.appendChild(previewItem);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // 作品图片预览功能
+        }
+        
+
+        
+        // 加载作品列表
+        async function loadProducts() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch('http://8.136.34.190:3000/api/products/admin/list', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // 认证失败，清除token并跳转到登录页
+                        localStorage.removeItem('adminToken');
+                        localStorage.removeItem('adminUser');
+                        showToast('登录已过期，请重新登录', 'error');
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 1500);
+                        return;
+                    }
+                    throw new Error('网络请求失败');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderProductsTable(data.data);
+                } else {
+                    showToast(data.message || '加载作品失败', 'error');
+                }
+            } catch (error) {
+                showToast('加载作品失败', 'error');
+                console.error('加载作品失败:', error);
+            }
+        }
+        
+        // 渲染作品表格
+        function renderProductsTable(products) {
+            const tbody = document.getElementById('products-table').querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            if (!products || products.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #718096;">
+                            暂无作品数据
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.id}</td>
+                    <td>${escapeHtml(product.title)}</td>
+                    <td>
+                        <img src="${product.cover}" width="60" height="40" style="object-fit: cover; border-radius: 4px;">
+                    </td>
+                    <td>
+                            ${Array.from({length: 5}, (_, i) => 
+                                i < (product.stars || 0) 
+                                    ? '<span style="color: #FFD700;">★</span>' 
+                                    : '<span style="color: #E5E7EB;">★</span>'
+                            ).join('')}
+                        </td>
+                        <td>
+                            <span class="tag tag-${product.featured ? 'success' : 'danger'}">
+                                ${product.featured ? '是' : '否'}
+                            </span>
+                        </td>
+                        <td>${formatDate(product.date)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-primary" onclick="editProduct(${product.id})")>编辑</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id}, '${escapeHtml(product.title)}')">删除</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 加载用户列表
+        async function loadUsers() {
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch('http://8.136.34.190:3000/api/users', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderUsersTable(data.data);
+                }
+            } catch (error) {
+                showToast('加载用户失败', 'error');
+                console.error('加载用户失败:', error);
+            }
+        }
+        
+        // 渲染用户表格
+        function renderUsersTable(users) {
+            const tbody = document.getElementById('users-table').querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            if (!users || users.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #718096;">
+                            暂无用户数据
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${escapeHtml(user.username)}</td>
+                    <td>${escapeHtml(user.email || '')}</td>
+                    <td>
+                        <span class="tag tag-${user.role === 'admin' ? 'warning' : 'info'}">
+                            ${user.role === 'admin' ? '管理员' : '编辑'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="tag tag-${user.status ? 'success' : 'danger'}">
+                            ${user.status ? '启用' : '禁用'}
+                        </span>
+                    </td>
+                    <td>${formatDate(user.createdAt)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-primary" onclick="editUser(${user.id})")>编辑</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id}, '${escapeHtml(user.username)}')">删除</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        // 打开作品模态框
+            function openProductModal() {
+                document.getElementById('modal-title').textContent = '添加作品';
+                document.getElementById('product-form').reset();
+                document.getElementById('product-id').value = '';
+                document.getElementById('cover-preview').innerHTML = '';
+                document.getElementById('images-preview').innerHTML = '';
+                
+                // 重置图片顺序数组
+                imageOrder = [];
+                
+                document.getElementById('product-modal').style.display = 'flex';
+            }
+        
+        // 关闭作品模态框
+        function closeProductModal() {
+            document.getElementById('product-modal').style.display = 'none';
+            
+            // 重置表单
+            document.getElementById('product-form').reset();
+            document.getElementById('product-id').value = '';
+            
+            // 清空图片预览容器
+            const coverPreview = document.getElementById('cover-preview');
+            const imagesPreview = document.getElementById('images-preview');
+            coverPreview.innerHTML = '';
+            imagesPreview.innerHTML = '';
+            
+            // 重置图片顺序数组
+            imageOrder = [];
+            
+            // 重置模态框标题
+            document.getElementById('modal-title').textContent = '添加作品';
+        }
+        
+        // 打开用户模态框
+        function openUserModal() {
+            document.getElementById('user-modal-title').textContent = '添加用户';
+            document.getElementById('user-form').reset();
+            document.getElementById('edit-user-id').value = '';
+            document.getElementById('user-modal').style.display = 'flex';
+        }
+        
+        // 关闭用户模态框
+        function closeUserModal() {
+            document.getElementById('user-modal').style.display = 'none';
+        }
+        
+        // 保存作品
+        async function saveProduct() {
+            await saveProductWithOrder();
+        }
+        
+        // 保存用户
+        async function saveUser() {
+            const id = document.getElementById('edit-user-id').value;
+            const username = document.getElementById('edit-username').value;
+            const email = document.getElementById('edit-email').value;
+            const password = document.getElementById('edit-password').value;
+            const role = document.getElementById('edit-role').value;
+            const status = document.getElementById('edit-status').value === 'true';
+            
+            // 验证必填字段
+            if (!username || !email) {
+                showToast('请填写必填字段', 'error');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('adminToken');
+                let response;
+                
+                const userData = {
+                    username,
+                    email,
+                    role,
+                    status
+                };
+                
+                // 只有在填写了密码时才更新密码
+                if (password) {
+                    userData.password = password;
+                }
+                
+                if (id) {
+                    // 更新用户
+                    response = await fetch(`http://8.136.34.190:3000/api/users/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(userData)
+                    });
+                } else {
+                    // 添加用户
+                    if (!password) {
+                        showToast('添加用户必须设置密码', 'error');
+                        return;
+                    }
+                    
+                    response = await fetch('http://8.136.34.190:3000/api/users', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(userData)
+                    });
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(id ? '更新成功' : '添加成功', 'success');
+                    closeUserModal();
+                    loadUsers();
+                    // 移除对未定义函数的调用
+                    // loadDashboardData();
+                } else {
+                    showToast(data.message || '操作失败', 'error');
+                }
+            } catch (error) {
+                showToast('操作失败', 'error');
+                console.error('保存用户失败:', error);
+            }
+        }
+        
+        // 保存设置
+        function saveSettings() {
+            // 这里只是模拟保存设置
+            showToast('设置已保存', 'success');
+        }
+        
+        // 编辑作品
+            async function editProduct(id) {
+                try {
+                    const token = localStorage.getItem('adminToken');
+                    const response = await fetch(`http://8.136.34.190:3000/api/products/admin/list`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        const product = data.data.find(p => p.id === id);
+                        
+                        if (product) {
+                            document.getElementById('modal-title').textContent = '编辑作品';
+                            document.getElementById('product-id').value = product.id;
+                            document.getElementById('product-title').value = product.title;
+                            document.getElementById('product-description').value = product.description || '';
+                            document.getElementById('product-stars').value = product.stars || 3;
+                            document.getElementById('product-tags').value = product.tags ? product.tags.join(', ') : '';
+                            // 设置单选框选中状态
+                            document.getElementById('product-featured-yes').checked = product.featured || false;
+                            document.getElementById('product-featured-no').checked = !(product.featured || false);
+                            
+                            // 清空图片预览容器
+                            const coverPreview = document.getElementById('cover-preview');
+                            const imagesPreview = document.getElementById('images-preview');
+                            coverPreview.innerHTML = '';
+                            imagesPreview.innerHTML = '';
+                            
+                            // 显示封面
+                            if (product.cover) {
+                                const coverImg = document.createElement('div');
+                                coverImg.style.position = 'relative';
+                                coverImg.style.border = '2px solid #3182ce';
+                                coverImg.style.borderRadius = '8px';
+                                
+                                const img = document.createElement('img');
+                                // 检查是否为完整URL，不是则添加后端服务器地址
+                        const coverUrl = product.cover;
+                        img.src = coverUrl;
+                                img.style.maxWidth = '200px';
+                                img.style.maxHeight = '150px';
+                                img.style.objectFit = 'cover';
+                                img.style.borderRadius = '6px';
+                                
+                                const label = document.createElement('span');
+                                label.textContent = '当前封面';
+                                label.style.position = 'absolute';
+                                label.style.bottom = '0';
+                                label.style.right = '0';
+                                label.style.background = '#3182ce';
+                                label.style.color = 'white';
+                                label.style.padding = '2px 8px';
+                                label.style.fontSize = '12px';
+                                label.style.borderRadius = '4px';
+                                
+                                coverImg.appendChild(img);
+                                coverImg.appendChild(label);
+                                coverPreview.appendChild(coverImg);
+                            }
+                            
+                            // 显示作品图片并支持增量上传
+                            if (product.images && product.images.length > 0) {
+                                // 清空预览区和数组
+                                imagesPreview.innerHTML = '';
+                                imageOrder = [];
+                                
+                                // 先按order字段排序图片
+                                const sortedImages = [...product.images].sort((a, b) => {
+                                    const orderA = typeof a === 'object' ? (a.order || 0) : 0;
+                                    const orderB = typeof b === 'object' ? (b.order || 0) : 0;
+                                    return orderA - orderB;
+                                });
+                                
+                                console.log('编辑作品 - 按order排序后的图片:', sortedImages);
+                                
+                                sortedImages.forEach((imageObj, index) => {
+                                    const imageUrl = typeof imageObj === 'object' ? imageObj.url : imageObj;
+                                    
+                                    // 修复：过滤掉base64格式的图片URL，只显示有效的服务器图片
+                                    if (imageUrl && !imageUrl.startsWith('data:image')) {
+                                        const imageContainer = createImagePreviewItem(imageUrl, index, false);
+                                        imagesPreview.appendChild(imageContainer);
+                                        
+                                        // 获取当前图片在数据库中的实际order值
+                                        const currentOrder = typeof imageObj === 'object' && imageObj.order ? imageObj.order : (index + 1);
+                                        
+                                        imageOrder.push({
+                                            url: imageUrl,
+                                            order: currentOrder,
+                                            file: null, // 编辑时没有文件对象
+                                            isNew: false, // 标记为现有图片
+                                            originalIndex: index // 保存原始索引，用于API调用
+                                        });
+                                    } else {
+                                        console.warn('跳过无效的图片URL:', imageUrl);
+                                    }
+                                });
+                                
+                                console.log('编辑作品 - imageOrder数组:', imageOrder);
+                            } else {
+                                // 如果没有图片，确保清空预览区和数组
+                                imagesPreview.innerHTML = '';
+                                imageOrder = [];
+                                console.log('编辑作品 - 没有现有图片，已清空预览区和数组');
+                            }
+                            
+                            // 添加提示文本
+                            const coverInfoText = document.createElement('div');
+                            coverInfoText.textContent = '提示：重新选择封面将替换现有封面';
+                            coverInfoText.style.color = '#666';
+                            coverInfoText.style.fontSize = '12px';
+                            coverInfoText.style.marginTop = '10px';
+                            coverPreview.appendChild(coverInfoText);
+                            
+                            const imagesInfoText = document.createElement('div');
+                            imagesInfoText.textContent = '提示：选择新图片将添加到现有图片中，可单独删除';
+                            imagesInfoText.style.color = '#666';
+                            imagesInfoText.style.fontSize = '12px';
+                            imagesInfoText.style.marginTop = '10px';
+                            imagesPreview.appendChild(imagesInfoText);
+                        
+                        document.getElementById('product-modal').style.display = 'flex';
+                    }
+                }
+            } catch (error) {
+                showToast('获取作品信息失败', 'error');
+                console.error('编辑作品失败:', error);
+            }
+        }
+        
+        // 编辑用户
+        async function editUser(id) {
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch('http://8.136.34.190:3000/api/users', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const user = data.data.find(u => u.id === id);
+                    
+                    if (user) {
+                        document.getElementById('user-modal-title').textContent = '编辑用户';
+                        document.getElementById('edit-user-id').value = user.id;
+                        document.getElementById('edit-username').value = user.username;
+                        document.getElementById('edit-email').value = user.email || '';
+                        document.getElementById('edit-password').value = '';
+                        document.getElementById('edit-role').value = user.role;
+                        document.getElementById('edit-status').value = user.status.toString();
+                        document.getElementById('user-modal').style.display = 'flex';
+                    }
+                }
+            } catch (error) {
+                showToast('获取用户信息失败', 'error');
+                console.error('编辑用户失败:', error);
+            }
+        }
+        
+        // 删除作品
+        async function deleteProduct(id, title) {
+            if (confirm(`确定要删除作品"${title}"吗？`)) {
+                try {
+                    const token = localStorage.getItem('adminToken');
+                    const response = await fetch(`http://8.136.34.190:3000/api/products/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showToast('删除成功', 'success');
+                        loadProducts();
+                    } else {
+                        showToast(data.message || '删除失败', 'error');
+                    }
+                } catch (error) {
+                    showToast('删除失败', 'error');
+                    console.error('删除作品失败:', error);
+                }
+            }
+        }
+        
+        // 删除用户
+        async function deleteUser(id, username) {
+            if (confirm(`确定要删除用户"${username}"吗？`)) {
+                try {
+                    const token = localStorage.getItem('adminToken');
+                    const response = await fetch(`http://8.136.34.190:3000/api/users/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showToast('删除成功', 'success');
+                        loadUsers();
+                        // 移除对未定义函数的调用
+                        // loadDashboardData();
+                    } else {
+                        showToast(data.message || '删除失败', 'error');
+                    }
+                } catch (error) {
+                    showToast('删除失败', 'error');
+                    console.error('删除用户失败:', error);
+                }
+            }
+        }
+        
+        // 文章管理相关功能
+        let currentPage = 1;
+        const pageSize = 10;
+        
+        // 加载文章列表
+        async function loadArticles(page = 1, search = '') {
+            currentPage = page;
+            try {
+                const token = localStorage.getItem('adminToken');
+                let url = `http://8.136.34.190:3000/api/articles/admin/list?page=${page}&pageSize=${pageSize}`;
+                if (search) {
+                    url += `&search=${encodeURIComponent(search)}`;
+                }
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tableBody = document.getElementById('article-table-body');
+                    tableBody.innerHTML = '';
+                    
+                    data.data.articles.forEach(article => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${article.title}</td>
+                            <td>
+                                ${article.cover ? `<img src="${article.cover}" alt="封面" style="width: 60px; height: 40px; object-fit: cover;">` : '无'}
+                            </td>
+                            <td>
+                                <span class="status-badge ${article.status ? 'status-published' : 'status-draft'}">
+                                    ${article.status ? '已发布' : '草稿'}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="featured-badge ${article.isFeatured ? 'featured-yes' : 'featured-no'}">
+                                    ${article.isFeatured ? '是' : '否'}
+                                </span>
+                            </td>
+                            <td>${article.viewCount || 0}</td>
+                            <td>${formatDate(article.createdAt)}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="editArticle(${article.id})">编辑</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteArticle(${article.id}, '${escapeHtml(article.title)}')">删除</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                    
+                    // 生成分页
+                    generateArticlePagination(data.data.totalPages, page);
+                } else {
+                    showToast(data.message || '加载文章列表失败', 'error');
+                }
+            } catch (error) {
+                showToast('加载文章列表失败', 'error');
+                console.error('加载文章列表失败:', error);
+            }
+        }
+        
+        // 生成文章分页
+        function generateArticlePagination(totalPages, currentPage) {
+            const pagination = document.getElementById('article-pagination');
+            pagination.innerHTML = '';
+            
+            // 上一页
+            if (currentPage > 1) {
+                const prevBtn = document.createElement('button');
+                prevBtn.className = 'btn btn-sm btn-secondary';
+                prevBtn.textContent = '上一页';
+                prevBtn.onclick = () => loadArticles(currentPage - 1);
+                pagination.appendChild(prevBtn);
+            }
+            
+            // 页码按钮
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-secondary'}`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => loadArticles(i);
+                pagination.appendChild(pageBtn);
+            }
+            
+            // 下一页
+            if (currentPage < totalPages) {
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'btn btn-sm btn-secondary';
+                nextBtn.textContent = '下一页';
+                nextBtn.onclick = () => loadArticles(currentPage + 1);
+                pagination.appendChild(nextBtn);
+            }
+        }
+        
+        // 打开文章编辑模态框
+        function openArticleModal() {
+            document.getElementById('article-modal-title').textContent = '添加文章';
+            document.getElementById('article-id').value = '';
+            document.getElementById('article-title').value = '';
+            document.getElementById('article-content').value = '';
+            document.getElementById('article-status').value = 'published';
+            // 设置默认选中"否"
+            document.querySelector('input[name="article-featured"][value="false"]').checked = true;
+            document.getElementById('article-cover').value = '';
+            
+            // 重置封面预览
+            const coverPreview = document.getElementById('article-cover-preview');
+            coverPreview.innerHTML = '<span>预览区域</span>';
+            
+            document.getElementById('article-modal').style.display = 'flex';
+        }
+        
+        // 关闭文章编辑模态框
+        function closeArticleModal() {
+            document.getElementById('article-modal').style.display = 'none';
+            // 清空表单
+            document.getElementById('article-id').value = '';
+            document.getElementById('article-title').value = '';
+            document.getElementById('article-content').value = '';
+            document.getElementById('article-status').value = 'published';
+            document.querySelector('input[name="article-featured"][value="false"]').checked = true;
+            document.getElementById('article-cover').value = '';
+            document.getElementById('article-cover-preview').innerHTML = '<span>预览区域</span>';
+        }
+        
+        // 加载文章数据
+        async function loadArticleData(id) {
+            try {
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch(`http://8.136.34.190:3000/api/articles/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const article = data.data;
+                    document.getElementById('article-id').value = article.id;
+                    document.getElementById('article-title').value = article.title;
+                    document.getElementById('article-content').value = article.content;
+                    // 将布尔类型的status转换为对应的字符串值
+                    const statusValue = article.status ? 'published' : 'draft';
+                    document.getElementById('article-status').value = statusValue;
+                    // 根据文章的isFeatured值设置单选按钮
+                    const featuredValue = article.isFeatured ? 'true' : 'false';
+                    document.querySelector(`input[name="article-featured"][value="${featuredValue}"]`).checked = true;
+                    
+                    // 设置封面预览
+                    const coverPreview = document.getElementById('article-cover-preview');
+                    if (article.cover) {
+                        // 检查是否为完整URL，不是则添加后端服务器地址
+                            const coverUrl = article.cover;
+                            coverPreview.innerHTML = `<img src="${coverUrl}" alt="封面">`;
+                    } else {
+                        coverPreview.innerHTML = '<span>预览区域</span>';
+                    }
+                } else {
+                    showToast(data.message || '加载文章数据失败', 'error');
+                }
+            } catch (error) {
+                showToast('加载文章数据失败', 'error');
+                console.error('加载文章数据失败:', error);
+            }
+        }
+        
+        // 编辑文章
+        function editArticle(id) {
+            document.getElementById('article-modal-title').textContent = '编辑文章';
+            loadArticleData(id);
+            document.getElementById('article-modal').style.display = 'flex';
+        }
+        
+        // 删除文章
+        async function deleteArticle(id, title) {
+            if (confirm(`确定要删除文章"${title}"吗？`)) {
+                try {
+                    const token = localStorage.getItem('adminToken');
+                    const response = await fetch(`http://8.136.34.190:3000/api/articles/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showToast('删除成功', 'success');
+                        loadArticles(currentPage);
+                    } else {
+                        showToast(data.message || '删除失败', 'error');
+                    }
+                } catch (error) {
+                    showToast('删除失败', 'error');
+                    console.error('删除文章失败:', error);
+                }
+            }
+        }
+        
+        // 保存文章
+        async function saveArticle() {
+            const id = document.getElementById('article-id').value;
+            const title = document.getElementById('article-title').value.trim();
+            const content = document.getElementById('article-content').value.trim();
+            // 获取状态值并转换为布尔值
+            const statusStr = document.getElementById('article-status').value;
+            const status = statusStr === 'published';
+            // 获取选中的单选按钮值并转换为布尔值
+            const isFeatured = document.querySelector('input[name="article-featured"]:checked').value === 'true';
+            const coverFile = document.getElementById('article-cover').files[0];
+            
+            // 表单验证
+            if (!title) {
+                showToast('请输入文章标题', 'error');
+                return;
+            }
+            
+            if (!content) {
+                showToast('请输入文章内容', 'error');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('adminToken');
+                const formData = new FormData();
+                formData.append('title', title);
+                formData.append('content', content);
+                formData.append('status', status);
+                formData.append('isFeatured', isFeatured);
+                
+                if (coverFile) {
+                    formData.append('cover', coverFile);
+                }
+                
+                let url = 'http://8.136.34.190:3000/api/articles';
+                let method = 'POST';
+                
+                if (id) {
+                    url += `/${id}`;
+                    method = 'PUT';
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(id ? '更新成功' : '创建成功', 'success');
+                    closeArticleModal();
+                    loadArticles(currentPage);
+                } else {
+                    showToast(data.message || '保存失败', 'error');
+                }
+            } catch (error) {
+                showToast('保存失败', 'error');
+                console.error('保存文章失败:', error);
+            }
+        }
+        
+        // 监听封面文件选择，显示预览
+        document.getElementById('article-cover').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const coverPreview = document.getElementById('article-cover-preview');
+            
+            if (file) {
+                // 检查文件类型
+                if (!file.type.match('image.*')) {
+                    showToast('请选择图片文件', 'error');
+                    coverPreview.innerHTML = '<span>预览区域</span>';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    coverPreview.innerHTML = `<img src="${event.target.result}" alt="封面预览" style="max-width: 100%; max-height: 200px; object-fit: contain;">`;
+                };
+                reader.onerror = function() {
+                    showToast('图片读取失败', 'error');
+                    coverPreview.innerHTML = '<span>预览区域</span>';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                coverPreview.innerHTML = '<span>预览区域</span>';
+            }
+        });
+        
+        // 作品图片相关功能
+        let imageOrder = [];
+        
+        // 监听作品图片文件选择，显示预览并支持增量上传
+        document.getElementById('product-images').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            const imagesPreview = document.getElementById('images-preview');
+            
+            if (files.length > 0) {
+                // 检查是否为新增作品（没有productId）
+                const productId = document.getElementById('product-id').value;
+                if (!productId) {
+                    // 新增作品：清空预览区和imageOrder数组
+                    imagesPreview.innerHTML = '';
+                    imageOrder = [];
+                }
+                
+                // 按文件名中的数字排序（由小到大）
+                const sortedFiles = files.sort((a, b) => {
+                    // 提取文件名中的数字进行比较
+                    const extractNumber = (filename) => {
+                        const match = filename.match(/(\d+)/);
+                        return match ? parseInt(match[1]) : 0;
+                    };
+                    
+                    const numA = extractNumber(a.name);
+                    const numB = extractNumber(b.name);
+                    
+                    // 如果都有数字，按数字大小排序
+                    if (numA !== 0 && numB !== 0) {
+                        return numA - numB;
+                    }
+                    
+                    // 如果只有一个有数字，有数字的排前面
+                    if (numA !== 0) return -1;
+                    if (numB !== 0) return 1;
+                    
+                    // 如果都没有数字，按字母顺序排序
+                    return a.name.localeCompare(b.name);
+                });
+                
+                console.log('原始文件顺序:', files.map(f => f.name));
+                console.log('按文件名数字排序后:', sortedFiles.map(f => f.name));
+                
+                // 按排序后的文件顺序处理图片
+                sortedFiles.forEach((file, fileIndex) => {
+                    if (file.type.match('image.*')) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            // 编辑模式：使用现有最大order值 + 1
+                            // 新增模式：使用当前数组长度作为order
+                            const currentOrder = !productId ? imageOrder.length : 
+                                Math.max(...imageOrder.map(img => img.order), -1) + 1;
+                            
+                            console.log(`添加图片 - 文件: ${file.name}, Order: ${currentOrder}, 模式: ${productId ? '编辑' : '新增'}`);
+                            
+                            const imageContainer = createImagePreviewItem(event.target.result, currentOrder, true);
+                            imagesPreview.appendChild(imageContainer);
+                            imageOrder.push({
+                                url: event.target.result,
+                                order: currentOrder,
+                                file: file,
+                                isNew: true // 标记为新图片
+                            });
+                            
+                            console.log('当前imageOrder数组:', imageOrder);
+                            
+                            // 更新序号显示
+                            updateOrderNumbers();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+                
+                // 清空文件输入，允许重复选择相同文件
+                e.target.value = '';
+            }
+        });
+        
+        // 创建图片预览项
+        function createImagePreviewItem(imageSrc, order, isNew = false) {
+            const container = document.createElement('div');
+            container.className = 'image-preview-item';
+            container.dataset.order = order;
+            container.dataset.isNew = isNew;
+            
+            const img = document.createElement('img');
+            img.src = imageSrc;
+            img.alt = '作品图片预览';
+            
+            // 添加序号显示 - 显示为order + 1，因为order从0开始
+            const orderNumber = document.createElement('div');
+            orderNumber.className = 'order-number';
+            orderNumber.textContent = order + 1;
+            
+            const controls = document.createElement('div');
+            controls.className = 'image-controls';
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.onclick = function(e) {
+                e.stopPropagation();
+                deleteImage(container, isNew);
+            };
+            
+            controls.appendChild(deleteBtn);
+            
+            container.appendChild(orderNumber);
+            container.appendChild(img);
+            container.appendChild(controls);
+            
+            console.log(`创建预览项 - Order: ${order}, 显示序号: ${order + 1}, 是否新图片: ${isNew}`);
+            
+            return container;
+        }
+        
+        // 更新序号显示
+        function updateOrderNumbers() {
+            const allItems = document.querySelectorAll('.image-preview-item');
+            allItems.forEach((item, index) => {
+                const orderNumber = item.querySelector('.order-number');
+                if (orderNumber) {
+                    orderNumber.textContent = index + 1;
+                }
+            });
+        }
+        
+        // 删除图片（支持增量删除）
+        async function deleteImage(container, isNew) {
+            const order = parseInt(container.dataset.order);
+            const isImageNew = container.dataset.isNew === 'true';
+            
+            // 如果是现有图片且在编辑模式，调用删除API
+            if (!isImageNew && document.getElementById('product-id').value) {
+                try {
+                    const productId = document.getElementById('product-id').value;
+                    const token = localStorage.getItem('adminToken');
+                    
+                    const response = await fetch(`http://8.136.34.190:3000/api/products/${productId}/images/${order}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast('图片已删除', 'success');
+                    } else {
+                        showToast(data.message || '删除失败', 'error');
+                        return;
+                    }
+                } catch (error) {
+                    showToast('删除失败', 'error');
+                    console.error('删除图片失败:', error);
+                    return;
+                }
+            } else {
+                showToast('图片已删除', 'info');
+            }
+            
+            container.remove();
+            
+            // 从imageOrder数组中移除
+            imageOrder = imageOrder.filter(img => img.order !== order);
+            
+            // 重新更新序号显示
+            updateOrderNumbers();
+        }
+        
+        // 修改保存作品函数，支持增量上传和图片顺序
+        async function saveProductWithOrder() {
+            const id = document.getElementById('product-id').value;
+            const title = document.getElementById('product-title').value;
+            const description = document.getElementById('product-description').value;
+            const stars = document.getElementById('product-stars').value;
+            const tags = document.getElementById('product-tags').value;
+            const featured = document.querySelector('input[name="product-featured"]:checked').value === 'true';
+            const coverFile = document.getElementById('product-cover').files[0];
+            
+            // 验证必填字段
+            if (!title) {
+                showToast('请填写作品标题', 'error');
+                return;
+            }
+            
+            if (!id && !coverFile) {
+                showToast('请上传作品封面', 'error');
+                return;
+            }
+            
+            // 处理标签
+            const tagsArray = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+            
+            try {
+                const token = localStorage.getItem('adminToken');
+                
+                if (id) {
+                    // 编辑模式：先上传新图片（增量上传）
+                    const newImages = imageOrder.filter(img => img.isNew && img.file);
+                    let uploadData = { success: true, data: { newImages: [] } };
+                    
+                    if (newImages.length > 0) {
+                        console.log('准备上传新图片数量:', newImages.length);
+                        
+                        const formData = new FormData();
+                        newImages.forEach((imageItem, index) => {
+                            console.log(`上传新图片 ${index}:`, imageItem.file.name);
+                            formData.append('images', imageItem.file);
+                            // 记录临时顺序，用于后续关联
+                            imageItem.tempOrder = index + 1;
+                        });
+                        
+                        const uploadResponse = await fetch(`http://8.136.34.190:3000/api/products/${id}/images`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: formData,
+                            credentials: 'include'
+                        });
+                        
+                        uploadData = await uploadResponse.json();
+                        console.log('新图片上传响应:', uploadData);
+                        
+                        if (!uploadResponse.ok || !uploadData.success) {
+                            // 根据错误类型提供更具体的提示
+                            let errorMessage = '图片上传失败';
+                            if (uploadData.message) {
+                                if (uploadData.message.includes('size') || uploadData.message.includes('large')) {
+                                    errorMessage = '图片文件过大，请选择更小的图片文件';
+                                } else if (uploadData.message.includes('type') || uploadData.message.includes('format')) {
+                                    errorMessage = '图片格式不支持，请选择JPG、PNG等常见格式';
+                                } else if (uploadData.message.includes('limit') || uploadData.message.includes('数量')) {
+                                    errorMessage = '图片数量超出限制，请减少图片数量';
+                                } else {
+                                    errorMessage = '图片上传失败: ' + uploadData.message;
+                                }
+                            } else if (uploadResponse.status === 413) {
+                                errorMessage = '图片文件过大，请选择更小的图片文件';
+                            } else if (uploadResponse.status === 415) {
+                                errorMessage = '图片格式不支持，请选择JPG、PNG等常见格式';
+                            } else if (uploadResponse.status >= 500) {
+                                errorMessage = '服务器错误，请稍后重试图片上传';
+                            }
+                            
+                            showToast(errorMessage, 'error');
+                            return;
+                        }
+                    } else {
+                        console.log('没有新图片需要上传');
+                    }
+                    
+                    // 更新作品基本信息
+                    const formData = new FormData();
+                    formData.append('title', title);
+                    formData.append('description', description || '');
+                    formData.append('stars', stars || 0);
+                    formData.append('tags', JSON.stringify(tagsArray));
+                    formData.append('featured', featured ? 'true' : 'false');
+                    
+                    // 添加封面文件（如果有）
+                    if (coverFile) {
+                        formData.append('cover', coverFile);
+                    }
+                    
+                    const response = await fetch(`http://8.136.34.190:3000/api/products/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData,
+                        credentials: 'include'
+                    });
+                    
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        // 更新图片顺序（处理所有图片：现有图片+新上传图片）
+                        const imageContainer = document.getElementById('images-preview');
+                        const imageItems = imageContainer.querySelectorAll('.image-preview-item');
+                        
+                        // 构建完整的图片数组，包含所有图片（现有+新增）
+                        const allImages = [];
+                        
+                        // 首先处理新上传的图片，建立URL映射
+                        const newImageMap = new Map();
+                        if (uploadData.success && uploadData.data && uploadData.data.newImages) {
+                            // 获取当前新上传的图片列表
+                            const currentNewImages = imageOrder.filter(img => img.isNew);
+                            console.log('当前新上传图片数量:', currentNewImages.length);
+                            console.log('服务器返回的新图片:', uploadData.data.newImages);
+                            
+                            // 建立base64到真实URL的映射
+                            currentNewImages.forEach((newImg, index) => {
+                                if (index < uploadData.data.newImages.length) {
+                                    const serverImg = uploadData.data.newImages[index];
+                                    // 使用base64 URL作为key，映射到真实URL
+                                    newImageMap.set(newImg.url, serverImg.url);
+                                    console.log(`建立映射: ${newImg.url.substring(0, 50)}... -> ${serverImg.url}`);
+                                }
+                            });
+                        }
+                        
+                        console.log('新图片URL映射:', Array.from(newImageMap.entries()));
+                        console.log('当前imageOrder数组:', imageOrder);
+                        
+                        // 详细调试：记录每个步骤
+                        console.log('=== 开始详细调试图片处理过程（修复版本） ===');
+                        console.log('DOM中的图片项数量:', imageItems.length);
+                        console.log('imageOrder数组长度:', imageOrder.length);
+                        
+                        // 修复：直接按DOM顺序处理图片，避免重复
+                        imageItems.forEach((item, domIndex) => {
+                            const imgElement = item.querySelector('img');
+                            if (imgElement) {
+                                const domImageUrl = imgElement.getAttribute('src');
+                                console.log(`DOM项 ${domIndex}: ${domImageUrl}`);
+                                
+                                // 检查是否是新上传的图片（base64格式）
+                                if (domImageUrl.startsWith('data:image')) {
+                                    // 这是新上传的图片，需要从映射中获取真实URL
+                                    const realUrl = newImageMap.get(domImageUrl);
+                                    if (realUrl) {
+                                        allImages.push({
+                                            url: realUrl,
+                                            order: domIndex + 1
+                                        });
+                                        console.log(`✅ 新图片: ${domImageUrl.substring(0, 50)}... -> ${realUrl} (order: ${domIndex + 1})`);
+                                    } else {
+                                        console.warn(`⚠️ 新图片映射失败: ${domImageUrl.substring(0, 50)}...`);
+                                    }
+                                } else {
+                                    // 这是现有图片，直接使用
+                                    allImages.push({
+                                        url: domImageUrl,
+                                        order: domIndex + 1
+                                    });
+                                    console.log(`✅ 现有图片: ${domImageUrl} (order: ${domIndex + 1})`);
+                                }
+                            }
+                        });
+                        
+                        console.log('\n=== 图片处理完成 ===');
+                        console.log('最终allImages数组:', allImages);
+                        console.log('预期图片数量:', imageItems.length);
+                        console.log('实际处理数量:', allImages.length);
+                        
+                        if (allImages.length !== imageItems.length) {
+                            console.warn('⚠️ 警告：处理的图片数量与DOM数量不符！');
+                        }
+                        
+                        console.log('发送的完整图片数组（包含现有+新增）:', allImages);
+                        
+                        // 只有当有图片时才更新顺序
+                        if (allImages.length > 0) {
+                            try {
+                                const orderResponse = await fetch(`http://8.136.34.190:3000/api/products/${id}/images/reorder`, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify({ images: allImages }),
+                                    credentials: 'include'
+                                });
+                                
+                                const orderData = await orderResponse.json();
+                                if (!orderResponse.ok || !orderData.success) {
+                                    console.error('图片顺序更新失败:', orderData.message);
+                                    showToast(`图片顺序更新失败: ${orderData.message}`, 'error');
+                                    return;
+                                } else {
+                                    console.log('图片顺序更新成功:', orderData);
+                                }
+                            } catch (orderError) {
+                                console.error('图片顺序更新请求失败:', orderError);
+                                showToast('图片顺序更新请求失败', 'error');
+                                return;
+                            }
+                        }
+                        
+                        showToast('更新成功', 'success');
+                        closeProductModal();
+                        loadProducts();
+                    } else {
+                        console.error('更新失败:', data);
+                        
+                        // 根据错误类型提供更具体的提示
+                        let errorMessage = '更新失败';
+                        if (data.message) {
+                            if (data.message.includes('file') || data.message.includes('upload') || data.message.includes('图片') || data.message.includes('cover')) {
+                                errorMessage = '文件上传失败: ' + data.message;
+                            } else if (data.message.includes('size') || data.message.includes('large')) {
+                                errorMessage = '文件过大，请选择更小的文件';
+                            } else if (data.message.includes('type') || data.message.includes('format')) {
+                                errorMessage = '文件格式不支持，请选择正确的文件格式';
+                            } else {
+                                errorMessage = data.message;
+                            }
+                        } else if (response.status === 413) {
+                            errorMessage = '文件过大，请选择更小的文件';
+                        } else if (response.status === 415) {
+                            errorMessage = '文件格式不支持，请选择正确的文件格式';
+                        } else if (response.status >= 500) {
+                            errorMessage = '服务器错误，请稍后重试';
+                        }
+                        
+                        showToast(errorMessage, 'error');
+                    }
+                } else {
+                    // 新增模式：使用原有逻辑
+                    const formData = new FormData();
+                    formData.append('title', title);
+                    formData.append('description', description || '');
+                    formData.append('stars', stars || 0);
+                    formData.append('tags', JSON.stringify(tagsArray));
+                    formData.append('featured', featured ? 'true' : 'false');
+                    formData.append('date', new Date().toISOString().split('T')[0]);
+                    
+                    // 添加封面文件
+                    if (coverFile) {
+                        formData.append('cover', coverFile);
+                    }
+                    
+                    // 按DOM中的实际顺序添加作品图片文件
+                    const imageContainer = document.getElementById('images-preview');
+                    const imageItems = imageContainer.querySelectorAll('.image-preview-item');
+                    
+                    // 按DOM顺序重新构建imageOrder数组
+                    const orderedImages = [];
+                    imageItems.forEach((item, domIndex) => {
+                        const order = parseInt(item.getAttribute('data-order'));
+                        const imageItem = imageOrder.find(img => img.order === order);
+                        if (imageItem && imageItem.file) {
+                            orderedImages.push({
+                                ...imageItem,
+                                order: domIndex // 更新order为DOM中的实际顺序
+                            });
+                        }
+                    });
+                    
+                    // 只有当确实有图片文件时才添加到FormData
+                    if (orderedImages.length > 0) {
+                        console.log('准备上传的图片文件数量:', orderedImages.length);
+                        orderedImages.forEach((imageItem, index) => {
+                            console.log(`上传图片 ${index}:`, imageItem.file.name);
+                            formData.append('images', imageItem.file);
+                        });
+                    } else {
+                        console.log('没有图片文件需要上传');
+                    }
+                    
+                    const response = await fetch('http://8.136.34.190:3000/api/products', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData,
+                        credentials: 'include'
+                    });
+                    
+                    console.log('响应状态:', response.status);
+                    console.log('响应头:', response.headers);
+                    
+                    const data = await response.json();
+                    console.log('响应数据:', data);
+                    
+                    if (response.ok && data.success) {
+                        showToast('添加成功', 'success');
+                        closeProductModal();
+                        loadProducts();
+                    } else {
+                        console.error('添加失败:', data);
+                        
+                        // 根据错误类型提供更具体的提示
+                        let errorMessage = '添加失败';
+                        if (data.message) {
+                            if (data.message.includes('file') || data.message.includes('upload') || data.message.includes('图片')) {
+                                errorMessage = '文件上传失败: ' + data.message;
+                            } else if (data.message.includes('size') || data.message.includes('large')) {
+                                errorMessage = '文件过大，请选择更小的文件';
+                            } else if (data.message.includes('type') || data.message.includes('format')) {
+                                errorMessage = '文件格式不支持，请选择正确的文件格式';
+                            } else {
+                                errorMessage = data.message;
+                            }
+                        } else if (response.status === 413) {
+                            errorMessage = '文件过大，请选择更小的文件';
+                        } else if (response.status === 415) {
+                            errorMessage = '文件格式不支持，请选择正确的文件格式';
+                        } else if (response.status >= 500) {
+                            errorMessage = '服务器错误，请稍后重试';
+                        }
+                        
+                        showToast(errorMessage, 'error');
+                    }
+                }
+            } catch (error) {
+                showToast(`操作失败: ${error.message || '未知错误'}`, 'error');
+            }
+        }
+        
+        // 显示消息提示
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+        
+        // 格式化日期
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString;
+            
+            return date.toLocaleDateString('zh-CN');
+        }
+        
+        // 转义HTML特殊字符
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // 暴露函数到全局
+        window.editProduct = editProduct;
+        window.deleteProduct = deleteProduct;
+        window.editUser = editUser;
+        window.deleteUser = deleteUser;
+        window.editArticle = editArticle;
+        window.deleteArticle = deleteArticle;
+    </script>
+    </body>
+</html>

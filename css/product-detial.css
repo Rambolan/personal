@@ -1,0 +1,132 @@
+/*背景*/            
+    .background {
+        height: 364px;
+        background-image: url('../img/product-bg.png');
+        background-repeat: no-repeat;
+        background-size: cover;
+        margin: 0;
+        background-color: #F9FAFB;
+    }
+
+/*中间容器*/  
+    .container{
+        width: 100%;
+        box-sizing: border-box;
+        padding-top: 50px;
+        padding-bottom: 50px;
+        display: flex;
+        flex-direction: column;/* 垂直排列 */
+        align-items: center;/* 交叉轴居中（垂直居中） */
+
+    }
+
+    /* 中间作品容器 */
+    .product-detial-container{
+        width: 70%;
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;/* 交叉轴居中（垂直居中） */
+        gap: 30px;
+        padding: 34px;
+        background-color: #FFFFFF;
+        border-radius: 30px;
+        box-sizing: border-box;
+    }
+
+        /*标题*/  
+        .title{
+            font-size: 30px;
+            font-weight: 600;
+            line-height: 36px;
+            margin: 0;
+            color: #000000;
+        }
+        
+        /* 精选作品项星星容器 */
+        .star-tag-time{
+            display: flex;
+            gap: 20px;
+        }
+
+            /* 精选作品项星星容器 */
+            .star-container{
+                display: flex;
+                gap: 5px;
+                align-items: center;/* 交叉轴居中（垂直居中） */
+            }
+
+            /* 星星 */
+            .star-container span{
+                font-family: "iconfont" !important;
+                font-size: 16px;
+                font-style: normal;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                color: #000000;
+            }
+
+            /* 精选作品项标签容器 */
+            .product-tag {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;/*项目会在需要时换行，从左到右，从上到下。*/
+            }
+            /* 精选作品项标签 */
+            .product-tag .tag {
+                font-size: 14px;
+                font-weight: 400;
+                line-height: 14px;
+                margin: 0;
+                color: #3B82F6;
+                border-radius: 30px;
+                padding: 10px 16px;
+                background-color: #EFF6FF
+            }
+
+            /* 发布时间容器 */
+            .time-container{
+                display: flex;
+                align-items: center;/* 上下居中 */
+                gap: 4px;
+            }
+                /* 文章发布时间 */
+                .time-container p{
+                    font-size: 16px;
+                    line-height: 16px;
+                    margin: 0;
+                    color: #808a99;
+                    text-align: left;
+                }
+
+            /* 作品图片 */
+            .product-img-container{
+                width: 100%;
+                height: auto;
+                display: flex;
+                flex-direction: column;/* 垂直排列 */
+                align-items: center;/* 交叉轴居中（垂直居中） */
+                gap: 10px;
+            }
+                /* 作品图片 */
+                .product-img-container img{
+                    width: 100%;
+                    height: auto;
+                    max-width: 1314px;
+                    order: inherit; /* 继承JavaScript设置的order属性 */
+                }
+
+                
+/* 作品描述容器 */
+.product-description-container {
+    width: 100%;
+}
+
+/* 作品描述文本 */
+.product-description-container .product-description {
+    font-size: 16px;
+    line-height: 28px;
+    color: #333333;
+    margin: 0;
+    text-align: justify;
+}
