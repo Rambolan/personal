@@ -220,6 +220,7 @@
                         flex: 1; /* 自动填充空白，保证底部对齐 */
                         display: -webkit-box;
                         -webkit-line-clamp: 2;
+                        line-clamp: 2;
                         -webkit-box-orient: vertical;
                         overflow: hidden;
                         text-overflow: ellipsis;

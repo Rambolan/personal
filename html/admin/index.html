@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>后台管理</title>
     <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+    <!-- CKEditor 5富文本编辑器CDN -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.2/classic/ckeditor.js"></script>
     <style>
         * {
             margin: 0;
@@ -976,6 +978,222 @@
     <div class="toast" id="toast"></div>
     
     <script>
+        // 初始化CKEditor 5富文本编辑器
+        let ckeditorInstance = null;
+        
+        function initCkeditor() {
+            try {
+                // 销毁已存在的编辑器实例
+                if (ckeditorInstance) {
+                    ckeditorInstance.destroy();
+                }
+                
+                // 获取textarea元素
+                const textarea = document.getElementById('article-content');
+                if (!textarea) {
+                    console.error('未找到文章内容textarea元素');
+                    return;
+                }
+                
+                // 创建CKEditor实例
+                ClassicEditor
+                    .create(textarea, {
+                        // 配置工具栏 - 使用默认包含的功能
+                        toolbar: [
+                                'heading', // 标题
+                                '|',
+                                'bold',    // 粗体
+                                'italic',  // 斜体
+                                '|',
+                                'link',    // 链接
+                                'bulletedList', // 无序列表
+                                'numberedList', // 有序列表
+                                '|',
+                                'blockquote', // 引用
+                                'insertTable', // 插入表格
+                                'imageUpload', // 图片上传
+                                '|',
+                                'undo',    // 撤销
+                                'redo'     // 重做
+                            ],
+                        // 配置标题选项
+                        heading: {
+                            options: [
+                                { model: 'paragraph', title: '正文', class: 'ck-heading_paragraph' },
+                                { model: 'heading1', view: 'h1', title: '标题 1', class: 'ck-heading_heading1' },
+                                { model: 'heading2', view: 'h2', title: '标题 2', class: 'ck-heading_heading2' },
+                                { model: 'heading3', view: 'h3', title: '标题 3', class: 'ck-heading_heading3' }
+                            ]
+                        },
+                        // 配置图片上传
+                        image: {
+                            toolbar: [
+                                'imageTextAlternative',
+                                'imageStyle:inline',
+                                'imageStyle:block'
+                            ]
+                        },
+                        // 配置表格
+                        table: {
+                            contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+                        },
+                        // 配置媒体嵌入
+                        mediaEmbed: {
+                            previewsInData: true
+                        }
+                    })
+                    .then(editor => {
+                        // 保存编辑器实例
+                        ckeditorInstance = editor;
+                        
+                        // 监听内容变化事件
+                        editor.model.document.on('change:data', () => {
+                            // 内容变化时自动同步到textarea
+                            textarea.value = editor.getData();
+                        });
+                        
+                        // 注册上传适配器
+                        editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+                            return new CustomUploadAdapter(loader);
+                        };
+                        
+                        console.log('CKEditor初始化成功');
+                    })
+                    .catch(error => {
+                        console.error('CKEditor初始化失败:', error);
+                        showToast('编辑器初始化失败，请刷新页面重试', 'error');
+                    });
+            } catch (error) {
+                console.error('初始化编辑器时发生错误:', error);
+                showToast('编辑器加载失败', 'error');
+            }
+        }
+        
+        // 自定义上传适配器类
+        class CustomUploadAdapter {
+            constructor(loader) {
+                this.loader = loader;
+            }
+            
+            upload() {
+                return this.loader.file
+                    .then(file => new Promise((resolve, reject) => {
+                        // 检查文件大小 (2MB)
+                        const maxSize = 2 * 1024 * 1024;
+                        if (file.size > maxSize) {
+                            reject({
+                                message: '文件大小不能超过2MB'
+                            });
+                            return;
+                        }
+                        
+                        // 检查文件类型
+                        const acceptedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+                        if (!acceptedTypes.includes(file.type)) {
+                            reject({
+                                message: '只支持JPG、JPEG、PNG和GIF格式的图片'
+                            });
+                            return;
+                        }
+                        
+                        // 创建FormData
+                        const formData = new FormData();
+                        formData.append('cover', file); // 后端期望的字段名是'cover'
+                        
+                        // 发送上传请求
+                        const xhr = new XMLHttpRequest();
+                        
+                        xhr.upload.addEventListener('progress', evt => {
+                            if (evt.lengthComputable) {
+                                const percentComplete = evt.loaded / evt.total;
+                                this.loader.uploadTotal = evt.total;
+                                this.loader.uploaded = evt.loaded;
+                            }
+                        });
+                        
+                        xhr.addEventListener('error', () => {
+                            reject({
+                                message: '上传失败，请检查网络连接'
+                            });
+                        });
+                        
+                        xhr.addEventListener('abort', () => {
+                            reject();
+                        });
+                        
+                        xhr.addEventListener('load', () => {
+                            const response = JSON.parse(xhr.responseText);
+                            
+                            if (xhr.status !== 200 || !response.success) {
+                                reject({
+                                    message: response.message || '上传失败'
+                                });
+                                return;
+                            }
+                            
+                            // 上传成功，返回图片URL
+                            // 确保返回完整的后端服务器URL，而不是相对路径
+                            let imageUrl = response.location;
+                            if (imageUrl && imageUrl.startsWith('/uploads/')) {
+                                imageUrl = `http://8.136.34.190:3000${imageUrl}`;
+                            }
+                            
+                            resolve({
+                                default: imageUrl
+                            });
+                            
+                            showToast('图片上传成功', 'success');
+                        });
+                        
+                        // 使用后端服务器完整地址，确保请求发送到正确的服务器
+                        xhr.open('POST', 'http://8.136.34.190:3000/api/editor/upload');
+                        xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('adminToken'));
+                        xhr.withCredentials = true;
+                        
+                        // 发送请求
+                        xhr.send(formData);
+                    }));
+            }
+            
+            abort() {
+                // 实现取消上传的逻辑
+            }
+        }
+        
+        // 注册上传适配器工厂
+        function uploadAdapterPlugin(editor) {
+            editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+                return new CustomUploadAdapter(loader);
+            };
+        }
+        
+        // 保存编辑器内容到textarea
+        function saveEditorContent() {
+            try {
+                if (ckeditorInstance) {
+                    const textarea = document.getElementById('article-content');
+                    if (textarea) {
+                        textarea.value = ckeditorInstance.getData();
+                    }
+                }
+            } catch (error) {
+                console.error('保存编辑器内容失败:', error);
+                // 继续使用textarea的内容
+            }
+        }
+        
+        // 销毁编辑器实例
+        function destroyEditor() {
+            try {
+                if (ckeditorInstance) {
+                    ckeditorInstance.destroy();
+                    ckeditorInstance = null;
+                }
+            } catch (error) {
+                console.error('销毁编辑器失败:', error);
+            }
+        }
+
         // 页面加载完成后执行
         document.addEventListener('DOMContentLoaded', function() {
             // 检查登录状态
@@ -989,6 +1207,9 @@
             
             // 绑定按钮事件
             bindButtonEvents();
+            
+            // 初始化TinyMCE富文本编辑器
+            // 需要等待模态框出现后再初始化，这里先不初始化
         });
         
         // 检查登录状态
@@ -1060,7 +1281,7 @@
             // 默认显示作品管理页面
             document.getElementById('page-title').textContent = '作品管理';
             document.getElementById('products-content').style.display = 'block';
-            loadProducts();
+            loadProducts(); // 启用加载作品数据
         }
         
         // 绑定导航事件
@@ -1859,10 +2080,25 @@
             coverPreview.innerHTML = '<span>预览区域</span>';
             
             document.getElementById('article-modal').style.display = 'flex';
+            
+            // 延迟初始化CKEditor 5，确保模态框已经显示
+            setTimeout(function() {
+                try {
+                    initCkeditor();
+                } catch (error) {
+                    console.error('初始化CKEditor失败:', error);
+                    // 确保文本区域可编辑
+                    document.getElementById('article-content').readOnly = false;
+                }
+            }, 100);
         }
         
         // 关闭文章编辑模态框
         function closeArticleModal() {
+            // 保存当前内容并销毁编辑器
+            saveEditorContent();
+            destroyEditor();
+            
             document.getElementById('article-modal').style.display = 'none';
             // 清空表单
             document.getElementById('article-id').value = '';
@@ -1891,7 +2127,19 @@
                     const article = data.data;
                     document.getElementById('article-id').value = article.id;
                     document.getElementById('article-title').value = article.title;
-                    document.getElementById('article-content').value = article.content;
+                    
+                    // 处理文章内容中的图片URL，确保指向后端服务器
+                    let content = article.content;
+                    // 正则表达式匹配img标签中的src属性，将相对路径的图片URL修改为指向后端服务器
+                    content = content.replace(/<img\s+[^>]*src=["']([^"']*\/uploads\/[^"']*)["'][^>]*>/g, function(match, src) {
+                        // 如果不是完整URL，则添加后端服务器地址
+                        if (!src.startsWith('http')) {
+                            return match.replace(src, 'http://8.136.34.190:3000' + src);
+                        }
+                        return match;
+                    });
+                    
+                    document.getElementById('article-content').value = content;
                     // 将布尔类型的status转换为对应的字符串值
                     const statusValue = article.status ? 'published' : 'draft';
                     document.getElementById('article-status').value = statusValue;
@@ -1902,9 +2150,11 @@
                     // 设置封面预览
                     const coverPreview = document.getElementById('article-cover-preview');
                     if (article.cover) {
-                        // 检查是否为完整URL，不是则添加后端服务器地址
-                            const coverUrl = article.cover;
-                            coverPreview.innerHTML = `<img src="${coverUrl}" alt="封面">`;
+                        // 确保图片URL指向后端服务器
+                        const coverUrl = article.cover;
+                        // 检查是否已经包含完整URL，如果是相对路径则添加后端服务器地址
+                        const finalCoverUrl = coverUrl.startsWith('http') ? coverUrl : 'http://8.136.34.190:3000' + coverUrl;
+                        coverPreview.innerHTML = `<img src="${finalCoverUrl}" alt="封面">`;
                     } else {
                         coverPreview.innerHTML = '<span>预览区域</span>';
                     }
@@ -1922,6 +2172,18 @@
             document.getElementById('article-modal-title').textContent = '编辑文章';
             loadArticleData(id);
             document.getElementById('article-modal').style.display = 'flex';
+            
+            // 延迟初始化CKEditor 5，确保模态框已经显示且数据已加载
+            setTimeout(function() {
+                try {
+                    initCkeditor();
+                    // CKEditor会自动设置内容
+                } catch (error) {
+                    console.error('初始化CKEditor失败:', error);
+                    // 确保文本区域可编辑
+                    document.getElementById('article-content').readOnly = false;
+                }
+            }, 200);
         }
         
         // 删除文章
@@ -1953,6 +2215,9 @@
         
         // 保存文章
         async function saveArticle() {
+            // 保存编辑器内容到textarea
+            saveEditorContent();
+            
             const id = document.getElementById('article-id').value;
             const title = document.getElementById('article-title').value.trim();
             const content = document.getElementById('article-content').value.trim();
@@ -1978,7 +2243,14 @@
                 const token = localStorage.getItem('adminToken');
                 const formData = new FormData();
                 formData.append('title', title);
-                formData.append('content', content);
+                
+                // 将文章内容中的图片URL从绝对路径转回相对路径，确保数据库中存储正确格式
+                let contentToSave = content;
+                // 正则表达式匹配指向我们后端服务器的图片URL，将其转回相对路径
+                contentToSave = contentToSave.replace(/<img\s+[^>]*src=["']http:\/\/8\.136\.34\.190:3000([^"']*)["'][^>]*>/g, function(match, src) {
+                    return match.replace('http://8.136.34.190:3000' + src, src);
+                });
+                formData.append('content', contentToSave);
                 formData.append('status', status);
                 formData.append('isFeatured', isFeatured);
                 
@@ -1986,6 +2258,7 @@
                     formData.append('cover', coverFile);
                 }
                 
+                // 使用后端服务器完整地址
                 let url = 'http://8.136.34.190:3000/api/articles';
                 let method = 'POST';
                 
@@ -2001,6 +2274,10 @@
                     },
                     body: formData
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const data = await response.json();
                 

@@ -97,11 +97,18 @@
                 background-color: #ffffff;
                 border-radius: 8px;
                 cursor: pointer;
+                transition: all 0.3s ease;
+                border: 1px solid #E1ECFF;
             }
 
             /* 文章列表项悬浮效果 */
             .article-list-container:hover{
-                box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.2);
+                box-shadow: 
+                    0 2px 4px rgba(0, 0, 0, 0.05),
+                    0 8px 16px rgba(0, 0, 0, 0.08),
+                    0 16px 32px rgba(0, 0, 0, 0.06);
+                transform: translateY(-4px) translateZ(0);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.15);
             }
             
             /* 文章列表左侧容器 */
@@ -109,33 +116,38 @@
                 display: flex;
                 flex-direction: column;/* 垂直排列 */
                 justify-content: space-between;/* 分居两边 */
-                gap: 20px;
                 padding: 8px 0px;
             }
                 /* 文章列表左侧顶部容器 */
                 .left-top-container{
                     display: flex;
                     flex-direction: column;/* 垂直排列 */
-                    gap: 20px;
                 }
 
                     /* 文章列表左侧标题 */
                     .article-title{
-                        font-size: 26px;
+                        font-size: 18px;
                         font-weight: 600;
-                        line-height: 34px;
+                        line-height: 28px;
                         margin: 0;
+                        margin-bottom: 20px;
                         color: #000000;
                         text-align: left;
                     }
 
                     /* 文章列表左侧描述 */
                     .article-description{
-                        font-size: 18px;
-                        line-height: 26px;
+                        display: -webkit-box;
+                        -webkit-line-clamp: 2;
+                        line-clamp: 2;
+                        -webkit-box-orient: vertical;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
                         margin: 0;
+                        margin-bottom: 20px;
+                        font-size: 14px;
+                        line-height: 22px;
                         color: #808a99;
-                        text-align: left;
                     }
                 
                 /* 文章列表左侧底部容器 */
@@ -146,8 +158,8 @@
                 }
                     /* 文章列表左侧发布时间 */
                     .left-bottom-container p{
-                        font-size: 16px;
-                        line-height: 16px;
+                        font-size: 14px;
+                        line-height: 14px;
                         margin: 0;
                         color: #808a99;
                         text-align: left;

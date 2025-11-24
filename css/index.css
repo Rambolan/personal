@@ -338,10 +338,16 @@
             box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
             border-radius: 12px;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
             /* 鼠标划过文章悬浮效果 */
             .article-item:hover{
-                    box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.2);
+                box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.05),
+                0 8px 16px rgba(0, 0, 0, 0.08),
+                0 16px 32px rgba(0, 0, 0, 0.06);
+                transform: translateY(-4px) translateZ(0);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.15);
             }
 
             /* 发布日期和阅读时间容器 */

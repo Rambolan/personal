@@ -7,6 +7,7 @@ const { User, Product, Article } = models;
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const articleRoutes = require('./routes/articleRoutes');
+const editorImageRoutes = require('./routes/editorImageRoutes');
 
 // 加载环境变量
 dotenv.config();
@@ -16,7 +17,7 @@ const app = express();
 
 // 配置CORS
 const corsOptions = {
-    origin: ['http://localhost:8080', 'http://127.0.0.1:8080', 'http://8.136.34.190:8080'], // 添加公网IP
+    origin: ['http://localhost:8080', 'http://127.0.0.1:8080', 'http://8.136.34.190:8080', 'http://localhost:8081'], // 添加公网IP和localhost:8081
     credentials: true, // 允许携带凭证
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
@@ -98,6 +99,7 @@ app.post('/api/test-post', (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/articles', articleRoutes);
+app.use('/api/editor', editorImageRoutes);
 
 // 404错误处理
 app.use((req, res, next) => {

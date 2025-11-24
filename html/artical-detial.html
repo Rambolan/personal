@@ -136,12 +136,19 @@
             
             // 填充文章内容
             const contentContainer = document.getElementById('article-content');
+            
+            // 处理文章内容中的图片URL，将相对路径转换为后端服务器的绝对路径
+            let processedContent = article.content || '';
+            
+            // 将所有以/uploads/开头的图片相对路径转换为后端服务器的绝对路径
+            processedContent = processedContent.replace(/src="\/uploads\//g, 'src="http://8.136.34.190:3000/uploads/');
+            
             // 如果content是HTML格式直接使用，否则包装在p标签中
-            if (article.content && (article.content.includes('<p>') || article.content.includes('<div>'))) {
-                contentContainer.innerHTML = article.content;
+            if (processedContent && (processedContent.includes('<p>') || processedContent.includes('<div>'))) {
+                contentContainer.innerHTML = processedContent;
             } else {
                 // 将纯文本转换为段落格式
-                const paragraphs = (article.content || '').split('\n').filter(p => p.trim());
+                const paragraphs = processedContent.split('\n').filter(p => p.trim());
                 if (paragraphs.length > 0) {
                     contentContainer.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
                 } else {

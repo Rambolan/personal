@@ -59,13 +59,24 @@
                 color: #808a99;
                 text-align: left;
             }
-
-        /* 文章内容 */
-        .artical-container p{
-            font-size: 18px;
-            line-height: 30px;
-            margin: 0;
-            color: #000000;
-            text-align: left;
-        }
         
+        /* 文章内容容器 */
+        .artical-container{
+            width: 100%;
+        }
+
+            /* 文章内容 */
+            .artical-container p{
+                font-size: 18px;
+                line-height: 30px;
+                margin: 0;
+                color: #000000;
+                text-align: left;
+            }
+        
+            /* 文章内容图片 */
+            .artical-container img{
+                width: 100%;
+                height: auto;
+                margin: 20px 0px;
+            }
