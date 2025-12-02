@@ -1135,7 +1135,8 @@
                             // 确保返回完整的后端服务器URL，而不是相对路径
                             let imageUrl = response.location;
                             if (imageUrl && imageUrl.startsWith('/uploads/')) {
-                                imageUrl = `http://8.136.34.190:3000${imageUrl}`;
+                                // 保持相对路径不变
+    imageUrl = imageUrl;
                             }
                             
                             resolve({
@@ -1146,7 +1147,7 @@
                         });
                         
                         // 使用后端服务器完整地址，确保请求发送到正确的服务器
-                        xhr.open('POST', 'http://8.136.34.190:3000/api/editor/upload');
+                        xhr.open('POST', '/api/editor/upload');
                         xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('adminToken'));
                         xhr.withCredentials = true;
                         
@@ -1464,7 +1465,8 @@
         async function loadProducts() {
             try {
                 const token = localStorage.getItem('adminToken');
-                const response = await fetch('http://8.136.34.190:3000/api/products/admin/list', {
+                // 修改为指向后端3000端口
+            const response = await fetch('http://8.136.34.190:3000/api/products/admin/list', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -1696,7 +1698,7 @@
                 
                 if (id) {
                     // 更新用户
-                    response = await fetch(`http://8.136.34.190:3000/api/users/${id}`, {
+                    response = await fetch(`/api/users/${id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1748,7 +1750,7 @@
             async function editProduct(id) {
                 try {
                     const token = localStorage.getItem('adminToken');
-                    const response = await fetch(`http://8.136.34.190:3000/api/products/admin/list`, {
+                    const response = await fetch(`/api/products/admin/list`, {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -1882,7 +1884,7 @@
         async function editUser(id) {
             try {
                 const token = localStorage.getItem('adminToken');
-                const response = await fetch('http://8.136.34.190:3000/api/users', {
+                const response = await fetch('/api/users', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -1915,7 +1917,7 @@
             if (confirm(`确定要删除作品"${title}"吗？`)) {
                 try {
                     const token = localStorage.getItem('adminToken');
-                    const response = await fetch(`http://8.136.34.190:3000/api/products/${id}`, {
+                    const response = await fetch(`/api/products/${id}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`
@@ -1942,7 +1944,7 @@
             if (confirm(`确定要删除用户"${username}"吗？`)) {
                 try {
                     const token = localStorage.getItem('adminToken');
-                    const response = await fetch(`http://8.136.34.190:3000/api/users/${id}`, {
+                    const response = await fetch(`/api/users/${id}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`
@@ -1975,7 +1977,7 @@
             currentPage = page;
             try {
                 const token = localStorage.getItem('adminToken');
-                let url = `http://8.136.34.190:3000/api/articles/admin/list?page=${page}&pageSize=${pageSize}`;
+                let url = `/api/articles/admin/list?page=${page}&pageSize=${pageSize}`;
                 if (search) {
                     url += `&search=${encodeURIComponent(search)}`;
                 }
@@ -2114,7 +2116,7 @@
         async function loadArticleData(id) {
             try {
                 const token = localStorage.getItem('adminToken');
-                const response = await fetch(`http://8.136.34.190:3000/api/articles/${id}`, {
+                const response = await fetch(`/api/articles/${id}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -2134,7 +2136,7 @@
                     content = content.replace(/<img\s+[^>]*src=["']([^"']*\/uploads\/[^"']*)["'][^>]*>/g, function(match, src) {
                         // 如果不是完整URL，则添加后端服务器地址
                         if (!src.startsWith('http')) {
-                            return match.replace(src, 'http://8.136.34.190:3000' + src);
+                            return match.replace(src, src);
                         }
                         return match;
                     });
@@ -2153,7 +2155,7 @@
                         // 确保图片URL指向后端服务器
                         const coverUrl = article.cover;
                         // 检查是否已经包含完整URL，如果是相对路径则添加后端服务器地址
-                        const finalCoverUrl = coverUrl.startsWith('http') ? coverUrl : 'http://8.136.34.190:3000' + coverUrl;
+                        const finalCoverUrl = coverUrl.startsWith('http') ? coverUrl : coverUrl;
                         coverPreview.innerHTML = `<img src="${finalCoverUrl}" alt="封面">`;
                     } else {
                         coverPreview.innerHTML = '<span>预览区域</span>';
@@ -2191,7 +2193,7 @@
             if (confirm(`确定要删除文章"${title}"吗？`)) {
                 try {
                     const token = localStorage.getItem('adminToken');
-                    const response = await fetch(`http://8.136.34.190:3000/api/articles/${id}`, {
+                    const response = await fetch(`/api/articles/${id}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`
@@ -2248,7 +2250,7 @@
                 let contentToSave = content;
                 // 正则表达式匹配指向我们后端服务器的图片URL，将其转回相对路径
                 contentToSave = contentToSave.replace(/<img\s+[^>]*src=["']http:\/\/8\.136\.34\.190:3000([^"']*)["'][^>]*>/g, function(match, src) {
-                    return match.replace('http://8.136.34.190:3000' + src, src);
+                    return match.replace(src, src);
                 });
                 formData.append('content', contentToSave);
                 formData.append('status', status);
@@ -2259,7 +2261,7 @@
                 }
                 
                 // 使用后端服务器完整地址
-                let url = 'http://8.136.34.190:3000/api/articles';
+                let url = '/api/articles';
                 let method = 'POST';
                 
                 if (id) {
@@ -2460,7 +2462,7 @@
                     const productId = document.getElementById('product-id').value;
                     const token = localStorage.getItem('adminToken');
                     
-                    const response = await fetch(`http://8.136.34.190:3000/api/products/${productId}/images/${order}`, {
+                    const response = await fetch(`/api/products/${productId}/images/${order}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`
@@ -2535,7 +2537,7 @@
                             imageItem.tempOrder = index + 1;
                         });
                         
-                        const uploadResponse = await fetch(`http://8.136.34.190:3000/api/products/${id}/images`, {
+                        const uploadResponse = await fetch(`/api/products/${id}/images`, {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${token}`
@@ -2588,7 +2590,7 @@
                         formData.append('cover', coverFile);
                     }
                     
-                    const response = await fetch(`http://8.136.34.190:3000/api/products/${id}`, {
+                    const response = await fetch(`/api/products/${id}`, {
                         method: 'PUT',
                         headers: {
                             'Authorization': `Bearer ${token}`
@@ -2678,7 +2680,7 @@
                         // 只有当有图片时才更新顺序
                         if (allImages.length > 0) {
                             try {
-                                const orderResponse = await fetch(`http://8.136.34.190:3000/api/products/${id}/images/reorder`, {
+                                const orderResponse = await fetch(`/api/products/${id}/images/reorder`, {
                                     method: 'PUT',
                                     headers: {
                                         'Content-Type': 'application/json',

@@ -111,7 +111,8 @@
                 productsData = productsArray.map(product => ({
                     id: product.id,
                     // 为相对路径的图片添加正确的路径前缀
-                    cover: product.cover && !product.cover.startsWith('http') && !product.cover.startsWith('../') 
+                    // 不处理以/uploads/开头的路径
+                    cover: product.cover && !product.cover.startsWith('http') && !product.cover.startsWith('../') && !product.cover.startsWith('/uploads/') 
                         ? '../img/covers/' + product.cover 
                         : product.cover,
                     alt: product.title || '产品图片',
@@ -157,9 +158,11 @@
                 try {
                     const products = await new Promise((resolve, reject) => {
                         const xhr = new XMLHttpRequest();
+                        // 修改为指向后端3000端口
                         xhr.open('GET', 'http://8.136.34.190:3000/api/products', true);
                         xhr.setRequestHeader('Content-Type', 'application/json');
                         xhr.setRequestHeader('Accept', 'application/json');
+                        // 保持withCredentials设置，与fetch一致
                         xhr.withCredentials = true;
                         
                         xhr.onload = function() {
@@ -188,7 +191,8 @@
                         productsData = productsArray.map(product => ({
                         id: product.id,
                         // 为相对路径的图片添加正确的路径前缀
-                        cover: product.cover && !product.cover.startsWith('http') && !product.cover.startsWith('../') 
+                        // 不处理以/uploads/开头的路径
+                        cover: product.cover && !product.cover.startsWith('http') && !product.cover.startsWith('../') && !product.cover.startsWith('/uploads/') 
                             ? '../img/covers/' + product.cover 
                             : product.cover,
                         alt: product.title || '产品图片',

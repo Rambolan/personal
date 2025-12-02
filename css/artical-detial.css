@@ -1,7 +1,7 @@
 /*背景*/            
     .background {
         height: 364px;
-        background-image: url('/Users/juwan/Desktop/code/personal web/img/product-bg.png');
+        background-image: url('../img/product-bg.png');
         background-repeat: no-repeat;
         background-size: cover;
         margin: 0;

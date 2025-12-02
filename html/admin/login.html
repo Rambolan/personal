@@ -149,25 +149,9 @@
     </div>
     
     <script>
-        // 调试日志函数
+        // 日志函数 - 只输出到控制台，不在页面显示
         function log(message, type = 'info') {
-            // 创建调试日志区域（如果不存在）
-            let debugArea = document.getElementById('debugLog');
-            if (!debugArea) {
-                debugArea = document.createElement('div');
-                debugArea.id = 'debugLog';
-                debugArea.style.cssText = 'margin-top: 20px; padding: 10px; background: #f5f5f5; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;';
-                document.body.appendChild(debugArea);
-            }
-            
-            // 添加日志条目
-            const logEntry = document.createElement('div');
-            logEntry.className = type;
-            logEntry.textContent = new Date().toLocaleTimeString() + ': ' + message;
-            debugArea.appendChild(logEntry);
-            debugArea.scrollTop = debugArea.scrollHeight;
-            
-            // 同时输出到控制台
+            // 只输出到控制台，移除页面上的调试区域显示
             console[type === 'error' ? 'error' : 'log'](message);
         }
 

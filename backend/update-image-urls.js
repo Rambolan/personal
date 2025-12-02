@@ -1,10 +1,10 @@
 const { sequelize, models } = require('./config/database');
 const { Product, Article } = models;
 
-// 替换URL中的localhost为指定的公网IP
+// 将外部服务器URL(http://8.136.34.190:3000)替换为相对路径(/uploads/)
 async function updateImageUrls() {
   try {
-    console.log('开始更新数据库中的图片URL...');
+    console.log('开始更新数据库中的图片URL为相对路径...');
     
     // 连接数据库
     await sequelize.authenticate();
@@ -20,19 +20,22 @@ async function updateImageUrls() {
       const updateData = {};
       
       // 更新cover字段
-      if (product.cover && product.cover.includes('localhost:3000')) {
-        updateData.cover = product.cover.replace('http://localhost:3000', 'http://8.136.34.190:3000');
+      if (product.cover && (product.cover.includes('http://8.136.34.190:3000/uploads/') || product.cover.includes('http://localhost:3000/uploads/'))) {
+        const filename = product.cover.split('/').pop();
+        updateData.cover = `/uploads/${filename}`;
         updated = true;
-        console.log(`更新产品 ${product.id} 的封面URL: ${updateData.cover}`);
+        console.log(`更新产品 ${product.id} 的封面URL为相对路径: ${updateData.cover}`);
       }
       
       // 更新images字段
       if (product.images && Array.isArray(product.images) && product.images.length > 0) {
         const updatedImages = product.images.map(img => {
-          if (typeof img === 'object' && img.url && img.url.includes('localhost:3000')) {
-            return { ...img, url: img.url.replace('http://localhost:3000', 'http://8.136.34.190:3000') };
-          } else if (typeof img === 'string' && img.includes('localhost:3000')) {
-            return img.replace('http://localhost:3000', 'http://8.136.34.190:3000');
+          if (typeof img === 'object' && img.url && (img.url.includes('http://8.136.34.190:3000/uploads/') || img.url.includes('http://localhost:3000/uploads/'))) {
+            const filename = img.url.split('/').pop();
+            return { ...img, url: `/uploads/${filename}` };
+          } else if (typeof img === 'string' && (img.includes('http://8.136.34.190:3000/uploads/') || img.includes('http://localhost:3000/uploads/'))) {
+            const filename = img.split('/').pop();
+            return `/uploads/${filename}`;
           }
           return img;
         });

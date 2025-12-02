@@ -15,7 +15,7 @@
             
             try {
                 console.log('正在测试文章API...');
-                const response = await fetch('http://localhost:3000/api/articles');
+                const response = await fetch('http://8.136.34.190:3000/api/articles');
                 
                 if (!response.ok) {
                     throw new Error(`HTTP错误! 状态: ${response.status}`);

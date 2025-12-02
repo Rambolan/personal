@@ -8,6 +8,9 @@ const { auth, adminAuth } = require('../middleware/auth');
 const { uploadSingle } = require('../middleware/upload');
 const dotenv = require('dotenv');
 
+// 文件上传的基础路径 - 使用环境变量或默认的公共IP地址
+const baseUrl = process.env.SERVER_BASE_URL || 'http://8.136.34.190:3000';
+
 // 创建新文章
 router.post('/', auth, uploadSingle, async (req, res) => {
   try {
@@ -36,7 +39,7 @@ router.post('/', auth, uploadSingle, async (req, res) => {
     }
     
     // 处理封面图片
-    const coverPath = '/uploads/' + req.file.filename;
+    const coverPath = baseUrl + '/uploads/' + req.file.filename;
     
     // 创建文章
     const article = await Article.create({
@@ -98,7 +101,7 @@ router.put('/:id', auth, uploadSingle, async (req, res) => {
       }
       
       // 设置新封面路径
-      updateData.cover = '/uploads/' + req.file.filename;
+      updateData.cover = baseUrl + '/uploads/' + req.file.filename;
     }
     
     // 更新文章
