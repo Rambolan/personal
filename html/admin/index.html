@@ -1977,7 +1977,7 @@
             currentPage = page;
             try {
                 const token = localStorage.getItem('adminToken');
-                let url = `/api/articles/admin/list?page=${page}&pageSize=${pageSize}`;
+                let url = `http://8.136.34.190:3000/api/articles/admin/list?page=${page}&pageSize=${pageSize}`;
                 if (search) {
                     url += `&search=${encodeURIComponent(search)}`;
                 }
