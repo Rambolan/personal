@@ -1132,11 +1132,11 @@
                             }
                             
                             // 上传成功，返回图片URL
-                            // 确保返回完整的后端服务器URL，而不是相对路径
+                            // 确保返回完整的后端服务器URL，使用正确的端口号3000
                             let imageUrl = response.location;
                             if (imageUrl && imageUrl.startsWith('/uploads/')) {
-                                // 保持相对路径不变
-    imageUrl = imageUrl;
+                                // 将相对路径转换为完整的后端服务器URL，使用3000端口
+                                imageUrl = 'http://8.136.34.190:3000' + imageUrl;
                             }
                             
                             resolve({
@@ -1147,7 +1147,7 @@
                         });
                         
                         // 使用后端服务器完整地址，确保请求发送到正确的服务器
-                        xhr.open('POST', '/api/editor/upload');
+                        xhr.open('POST', 'http://8.136.34.190:3000/api/editor/upload');
                         xhr.setRequestHeader('Authorization', 'Bearer ' + localStorage.getItem('adminToken'));
                         xhr.withCredentials = true;
                         
@@ -1750,7 +1750,7 @@
             async function editProduct(id) {
                 try {
                     const token = localStorage.getItem('adminToken');
-                    const response = await fetch(`/api/products/admin/list`, {
+                    const response = await fetch(`http://8.136.34.190:3000/api/products/admin/list`, {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -1917,7 +1917,7 @@
             if (confirm(`确定要删除作品"${title}"吗？`)) {
                 try {
                     const token = localStorage.getItem('adminToken');
-                    const response = await fetch(`/api/products/${id}`, {
+                    const response = await fetch(`http://8.136.34.190:3000/api/products/${id}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`
@@ -2116,7 +2116,7 @@
         async function loadArticleData(id) {
             try {
                 const token = localStorage.getItem('adminToken');
-                const response = await fetch(`/api/articles/${id}`, {
+                const response = await fetch(`http://8.136.34.190:3000/api/articles/${id}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -2136,7 +2136,7 @@
                     content = content.replace(/<img\s+[^>]*src=["']([^"']*\/uploads\/[^"']*)["'][^>]*>/g, function(match, src) {
                         // 如果不是完整URL，则添加后端服务器地址
                         if (!src.startsWith('http')) {
-                            return match.replace(src, src);
+                            return match.replace(src, 'http://8.136.34.190:3000' + src);
                         }
                         return match;
                     });
@@ -2193,7 +2193,7 @@
             if (confirm(`确定要删除文章"${title}"吗？`)) {
                 try {
                     const token = localStorage.getItem('adminToken');
-                    const response = await fetch(`/api/articles/${id}`, {
+                    const response = await fetch(`http://8.136.34.190:3000/api/articles/${id}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`
@@ -2250,7 +2250,7 @@
                 let contentToSave = content;
                 // 正则表达式匹配指向我们后端服务器的图片URL，将其转回相对路径
                 contentToSave = contentToSave.replace(/<img\s+[^>]*src=["']http:\/\/8\.136\.34\.190:3000([^"']*)["'][^>]*>/g, function(match, src) {
-                    return match.replace(src, src);
+                    return match.replace('http://8.136.34.190:3000' + src, src);
                 });
                 formData.append('content', contentToSave);
                 formData.append('status', status);
@@ -2261,7 +2261,7 @@
                 }
                 
                 // 使用后端服务器完整地址
-                let url = '/api/articles';
+                let url = 'http://8.136.34.190:3000/api/articles';
                 let method = 'POST';
                 
                 if (id) {
@@ -2590,7 +2590,7 @@
                         formData.append('cover', coverFile);
                     }
                     
-                    const response = await fetch(`/api/products/${id}`, {
+                    const response = await fetch(`http://8.136.34.190:3000/api/products/${id}`, {
                         method: 'PUT',
                         headers: {
                             'Authorization': `Bearer ${token}`
