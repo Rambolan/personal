@@ -448,9 +448,12 @@ app.get('/api/test-promise-rejection', (req, res) => {
 
 // 延迟加载路由，减少启动时的内存占用
 // 这里需要重新导入路由
-const userRoutes = require('./routes/userRoutes');
-const productRoutes = require('./routes/productRoutes');
-const articleRoutes = require('./routes/articleRoutes');
+// const userRoutes = require('./routes/userRoutes');
+// const productRoutes = require('./routes/productRoutes');
+// const articleRoutes = require('./routes/articleRoutes');
+const userRoutes = require('./routes/supabaseUserRoutes');
+const productRoutes = require('./routes/supabaseProductRoutes');
+const articleRoutes = require('./routes/supabaseArticleRoutes');
 const editorImageRoutes = require('./routes/editorImageRoutes');
 
 // 注册路由
@@ -480,30 +483,31 @@ app.use((err, req, res, next) => {
 // 初始化数据库
 async function initDatabase() {
   try {
-    // 延迟导入数据库配置，减少启动时内存占用
-    const { sequelize, models, Op, poolManager } = require('./config/database');
-    const { User } = models;
+    // 延迟导入Supabase配置，减少启动时内存占用
+    const supabase = require('./config/supabase');
+    const bcrypt = require('bcrypt');
     
-    console.log('正在连接数据库...');
-    await sequelize.authenticate();
-    console.log('数据库连接成功！');
+    console.log('正在连接Supabase数据库...');
     
-    console.log('正在同步数据库模型...');
-    // 使用安全的同步模式，不删除现有表和数据
-    await sequelize.sync({
-      logging: process.env.NODE_ENV === 'development'
-    });
-    console.log('数据库模型同步完成！');
+    // 测试Supabase连接
+    const { data, error } = await supabase
+      .from('users')
+      .select('id')
+      .limit(1);
+    
+    if (error) {
+      throw new Error(`Supabase连接失败: ${error.message}`);
+    }
+    
+    console.log('Supabase数据库连接成功！');
     
     // 创建默认管理员账户
-    await createDefaultAdmin(User, Op);
+    await createDefaultAdmin(supabase, bcrypt);
     
-    // 执行数据库健康检查
-    console.log('执行数据库健康检查...');
-    await poolManager.checkHealth();
+    console.log('数据库初始化完成！');
     
-    // 返回sequelize实例和poolManager供后续使用
-    return { sequelize, poolManager };
+    // 返回空对象，因为我们不再使用Sequelize
+    return { sequelize: null, poolManager: null };
   } catch (error) {
     console.error('数据库初始化失败:', error);
     // 记录到告警日志
@@ -521,31 +525,42 @@ async function initDatabase() {
   }
 }
 
-// 创建默认管理员账户（使用参数传入依赖，避免全局依赖）
-async function createDefaultAdmin(User, Op) {
+// 创建默认管理员账户（使用Supabase）
+async function createDefaultAdmin(supabase, bcrypt) {
   try {
     const adminUsername = 'admin';
     const adminEmail = 'admin@example.com';
     const adminPassword = 'admin123';
     
     // 检查是否已存在管理员账户
-    const existingAdmin = await User.findOne({ 
-      where: { 
-        [Op.or]: [
-          { username: adminUsername },
-          { role: 'admin' }
-        ]
-      }
-    });
+    const { data: existingAdmin, error } = await supabase
+      .from('users')
+      .select('id')
+      .or('username.eq.' + adminUsername, 'role.eq.admin')
+      .single();
+    
+    if (error && error.code !== 'PGRST116') { // PGRST116表示未找到记录
+      throw error;
+    }
     
     if (!existingAdmin) {
-      await User.create({
-        username: adminUsername,
-        password: adminPassword,
-        email: adminEmail,
-        role: 'admin',
-        status: true
-      });
+      // 加密密码
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+      
+      const { data, error } = await supabase
+        .from('users')
+        .insert([{
+          username: adminUsername,
+          password: hashedPassword,
+          email: adminEmail,
+          role: 'admin',
+          status: true
+        }]);
+      
+      if (error) {
+        throw error;
+      }
+      
       console.log(`默认管理员账户创建成功: ${adminUsername}`);
     } else {
       console.log('管理员账户已存在，跳过创建');
@@ -565,27 +580,16 @@ async function startServer() {
       console.log(`创建日志目录: ${logsDir}`);
     }
     
-    // 初始化数据库并获取sequelize实例和poolManager
+    // 初始化数据库（使用Supabase）
     const { sequelize, poolManager } = await initDatabase();
     
-    // 存储sequelize实例和poolManager到app对象中
+    // 存储sequelize实例（null）和poolManager（null）到app对象中
     app.locals.sequelize = sequelize;
     app.locals.poolManager = poolManager;
     
     // 启动内存监控
     monitorMemoryUsage(); // 立即执行一次
     setInterval(monitorMemoryUsage, MEMORY_CHECK_INTERVAL);
-    
-    // 启动数据库连接池监控
-    console.log('启动数据库连接池监控...');
-    const monitor = poolManager.monitor();
-    // 确保poolManager已保存到app.locals中供监控路由访问
-    if (!app.locals.poolManager) {
-      app.locals.poolManager = poolManager;
-    }
-    
-    // 存储monitor实例到app对象中
-    app.locals.dbMonitor = monitor;
     
     // 启动服务可用性监控
     console.log('启动服务可用性监控...');
