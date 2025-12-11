@@ -110,7 +110,7 @@ async function monitorConnectionPool(pool) {
   lastPoolCheck = new Date().toISOString();
   
   // 记录监控日志
-  console.log(`[数据库连接池监控] 活跃: ${stats.active}/${MAX_CONNECTIONS}, 空闲: ${stats.idle}, 使用率: ${usageRate}%`);
+  console.log(`[数据库连接池监控] 活跃: ${stats.active}/${poolStats.currentMax}, 空闲: ${stats.idle}, 使用率: ${usageRate}%`);
   
   // 检查是否需要告警
     if (usageRate >= SCALE_UP_THRESHOLD) {
@@ -419,29 +419,18 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
-    dialect: 'mysql',
+    dialect: 'postgres',
     timezone: '+08:00',
     // 使用自定义日志函数
     logging: process.env.NODE_ENV === 'development' ? customLogger : false,
     dialectOptions: {
-      // 只在有socketPath时使用，否则使用TCP连接
-      ...(process.env.DB_SOCKET && { socketPath: process.env.DB_SOCKET }),
-      // 增加排序缓冲区大小
-      sortBufferSize: 2097152, // 2MB
-      // 增加临时表大小
-      tmpTableSize: 67108864, // 64MB
-      maxAllowedPacket: 67108864, // 64MB
-      // 启用连接池复用
-      keepAlive: true,
-      keepAliveInitialDelay: 10000,
+      // PostgreSQL 特定配置
+      ssl: process.env.DB_SSL === 'true' ? {
+        require: true,
+        rejectUnauthorized: false
+      } : false,
       // 设置连接超时
-      connectTimeout: 30000,
-      // 添加字符集配置以支持中文
-      charset: 'utf8mb4',
-      collate: 'utf8mb4_unicode_ci',
-      // 确保连接使用正确的字符集
-      supportBigNumbers: true,
-      bigNumberStrings: false
+      connectTimeout: 30000
     },
     pool: {
         max: INITIAL_MAX_CONNECTIONS, // 初始最大连接数，后续可能动态调整
